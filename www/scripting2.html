@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>rxx — scripting guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <h1>
+    <em class="rxx">rxx</em>
+    <span class="subtitle">scripting guide</span>
+  </h1>
+
+  <p class="nav">
+    <a href="index.html">home</a>
+    <a href="#overview">overview</a>
+    <a href="#getting-started">start</a>
+    <a href="#lifecycle">lifecycle</a>
+    <a href="#api">api</a>
+  </p>
+
+  <p>
+    <em class="rxx">rxx</em> embeds a <a href="https://rhai.rs/">Rhai</a> scripting engine
+    that lets you extend the editor with plugins. Scripts can draw overlays, register
+    custom commands, create GPU pipelines, and react to user input &mdash; all without
+    restarting the editor.
+  </p>
+
+  <h2 id="overview">overview</h2>
+
+  <p>
+    There are two types of scripts:
+  </p>
+
+  <ul>
+    <li><strong>.rxx plugins</strong> &mdash; placed in the <code>plugins/</code> directory.
+      These are full-featured plugins with lifecycle hooks, drawing, GPU access, and
+      custom commands.</li>
+    <li><strong>init.rhai</strong> &mdash; placed in <code>config/init.rhai</code>.
+      Same capabilities as <code>.rxx</code> plugins. Runs on startup alongside
+      the built-in plugins.</li>
+  </ul>
+
+  <p>
+    Both formats use the <a href="https://rhai.rs/">Rhai</a> language. If you know
+    Rust or JavaScript, Rhai will feel familiar &mdash; it has <code>let</code>
+    bindings, <code>fn</code> functions, string interpolation with
+    <code>`${expr}`</code>, maps (<code>#{}</code>), and dynamic typing.
+  </p>
+
+  <h2 id="getting-started">getting started</h2>
+
+  <h3>your first plugin</h3>
+
+  <p>
+    Create a file in the plugins directory, e.g. <code>plugins/hello.rxx</code>:
+  </p>
+
+  <pre><code><span class="keyword">fn</span> <span class="fn-name">init</span>(session_in, renderer_in) {
+    <span class="keyword">let</span> session = session_in;
+    <span class="keyword">let</span> renderer = renderer_in;
+    print(<span class="string">`hello.rxx loaded!`</span>);
+}
+
+<span class="keyword">fn</span> <span class="fn-name">draw</span>() {
+    draw_text(
+        vec2(<span class="number">10.0</span>, <span class="number">30.0</span>),
+        <span class="string">"hello from rxx"</span>,
+        rgb8(<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>)
+    );
+}</code></pre>
+
+  <p>
+    Save the file and <em class="rxx">rxx</em> will hot-reload it. You should see
+    green text in the top-left corner of the editor.
+  </p>
+
+  <blockquote>
+    <p>
+      Scripts are loaded alphabetically from the <code>plugins/</code> directory.
+      Variables declared at the top of <code>init()</code> persist across all
+      subsequent hook calls &mdash; this is how you keep state.
+    </p>
+  </blockquote>
+
+  <h3>registering a command</h3>
+
+  <p>
+    You can register commands that users invoke from the <em class="rxx">rxx</em>
+    command line. The command name uses <code>/</code> as a separator, and the
+    corresponding handler function replaces <code>/</code> with <code>_</code>:
+  </p>
+
+  <pre><code><span class="keyword">fn</span> <span class="fn-name">init</span>(session_in, renderer_in) {
+    <span class="keyword">let</span> session = session_in;
+    <span class="keyword">let</span> renderer = renderer_in;
+    register_command(
+        <span class="string">"greet/hello"</span>,
+        <span class="string">"Say hello"</span>
+    );
+}
+
+<span class="keyword">fn</span> <span class="fn-name">cmd_greet_hello</span>(args) {
+    print(<span class="string">`Hello! Args: ${args}`</span>);
+}</code></pre>
+
+  <p>
+    The command <code>:greet/hello</code> is now available in the editor.
+  </p>
+
+  <h3>custom script modes</h3>
+
+  <p>
+    Scripts can define custom modes that integrate with the editor's mode system.
+    When a script mode is active, your plugin receives mouse and cursor events:
+  </p>
+
+  <pre><code><span class="keyword">fn</span> <span class="fn-name">init</span>(session_in, renderer_in) {
+    <span class="keyword">let</span> session = session_in;
+    <span class="keyword">let</span> renderer = renderer_in;
+    <span class="keyword">let</span> my_mode = script_mode(<span class="string">"my tool"</span>);
+    register_command(<span class="string">"tool/start"</span>, <span class="string">"Start my tool"</span>);
+}
+
+<span class="keyword">fn</span> <span class="fn-name">cmd_tool_start</span>(args) {
+    session.switch_mode(my_mode);
+}
+
+<span class="keyword">fn</span> <span class="fn-name">mouse_input</span>(state, button, cursor) {
+    <span class="keyword">if</span> session.mode != my_mode { <span class="keyword">return</span>; }
+    <span class="keyword">if</span> state == INPUT_STATE_PRESSED
+        &amp;&amp; button == MOUSE_BUTTON_LEFT {
+        print(<span class="string">`clicked at ${cursor}`</span>);
+    }
+}
+
+<span class="keyword">fn</span> <span class="fn-name">switch_mode</span>() {
+    <span class="comment">// called when leaving the mode</span>
+    <span class="keyword">if</span> session.prev_mode == my_mode {
+        print(<span class="string">"left my tool mode"</span>);
+    }
+}</code></pre>
+
+  <h2 id="lifecycle">plugin lifecycle</h2>
+
+  <p>
+    Every plugin can implement any subset of these hooks. All are optional except
+    <code>init</code>, which is where you capture the <code>session</code> and
+    <code>renderer</code> references.
+  </p>
+
+  <table>
+    <tr>
+      <th>hook</th>
+      <th>signature</th>
+      <th>when</th>
+    </tr>
+    <tr>
+      <td><code>init</code></td>
+      <td><code>fn init(session, renderer)</code></td>
+      <td>Once on plugin load. Store <code>session</code> and <code>renderer</code> in local variables.</td>
+    </tr>
+    <tr>
+      <td><code>draw</code></td>
+      <td><code>fn draw()</code></td>
+      <td>Every frame. Draw overlays (text, lines) on top of the editor.</td>
+    </tr>
+    <tr>
+      <td><code>shade</code></td>
+      <td><code>fn shade(encoder)</code></td>
+      <td>Every frame before render. Run GPU compute or render passes on off-screen textures.</td>
+    </tr>
+    <tr>
+      <td><code>render</code></td>
+      <td><code>fn render(pass)</code></td>
+      <td>Every frame. Draw into the main screen framebuffer using custom pipelines.</td>
+    </tr>
+    <tr>
+      <td><code>mouse_input</code></td>
+      <td><code>fn mouse_input(state, button, cursor)</code></td>
+      <td>Mouse button press or release.</td>
+    </tr>
+    <tr>
+      <td><code>mouse_wheel</code></td>
+      <td><code>fn mouse_wheel(delta)</code></td>
+      <td>Mouse wheel scroll.</td>
+    </tr>
+    <tr>
+      <td><code>cursor_moved</code></td>
+      <td><code>fn cursor_moved(p)</code></td>
+      <td>Mouse cursor moved.</td>
+    </tr>
+    <tr>
+      <td><code>switch_mode</code></td>
+      <td><code>fn switch_mode()</code></td>
+      <td>When the editor leaves a script mode. Check <code>session.prev_mode</code>.</td>
+    </tr>
+    <tr>
+      <td><code>view_added</code></td>
+      <td><code>fn view_added(view_id)</code></td>
+      <td>A new view (image tab) was opened.</td>
+    </tr>
+    <tr>
+      <td><code>view_removed</code></td>
+      <td><code>fn view_removed(view_id)</code></td>
+      <td>A view was closed.</td>
+    </tr>
+    <tr>
+      <td><code>cmd_*</code></td>
+      <td><code>fn cmd_&lt;name&gt;(args)</code></td>
+      <td>Called when a registered command is invoked. <code>/</code> in the command name becomes <code>_</code>.</td>
+    </tr>
+  </table>
+
+  <h2 id="api">api reference</h2>
+
+  <h3>session</h3>
+
+  <p>
+    The <code>session</code> object is your main interface to the editor state.
+  </p>
+
+  <table>
+    <tr><th>property</th><th>type</th><th>description</th></tr>
+    <tr>
+      <td><code>session.mode</code></td>
+      <td>Mode</td>
+      <td>Current editor mode.</td>
+    </tr>
+    <tr>
+      <td><code>session.prev_mode</code></td>
+      <td>Mode | ()</td>
+      <td>Previous mode (useful in <code>switch_mode</code>).</td>
+    </tr>
+    <tr>
+      <td><code>session.active_view_id</code></td>
+      <td>i64</td>
+      <td>ID of the currently focused view.</td>
+    </tr>
+    <tr>
+      <td><code>session.selection</code></td>
+      <td>Rect | ()</td>
+      <td>Current selection bounds, or <code>()</code> if none.</td>
+    </tr>
+    <tr>
+      <td><code>session.cursor</code></td>
+      <td>Vector2</td>
+      <td>Cursor position in session space.</td>
+    </tr>
+    <tr>
+      <td><code>session.width</code></td>
+      <td>f64</td>
+      <td>Window width.</td>
+    </tr>
+    <tr>
+      <td><code>session.height</code></td>
+      <td>f64</td>
+      <td>Window height.</td>
+    </tr>
+    <tr>
+      <td><code>session.offset_x</code></td>
+      <td>f64</td>
+      <td>Global view offset X.</td>
+    </tr>
+    <tr>
+      <td><code>session.offset_y</code></td>
+      <td>f64</td>
+      <td>Global view offset Y.</td>
+    </tr>
+  </table>
+
+  <table>
+    <tr><th>method</th><th>description</th></tr>
+    <tr>
+      <td><code>session.view(id)</code></td>
+      <td>Get a view by ID. Returns a view object or <code>()</code>.</td>
+    </tr>
+    <tr>
+      <td><code>session.views()</code></td>
+      <td>Get an array of all open views.</td>
+    </tr>
+    <tr>
+      <td><code>session.switch_mode(mode)</code></td>
+      <td>Switch to a different mode (e.g. a script mode).</td>
+    </tr>
+    <tr>
+      <td><code>session.active_view_coords(p)</code></td>
+      <td>Convert session-space point to view coordinates.</td>
+    </tr>
+    <tr>
+      <td><code>session.active_view_sub_coords(p, precision)</code></td>
+      <td>Sub-pixel view coordinates with given precision.</td>
+    </tr>
+  </table>
+
+  <h3>views</h3>
+
+  <p>
+    A view represents an open image in the editor. Obtained via
+    <code>session.view(id)</code> or <code>session.views()</code>.
+  </p>
+
+  <table>
+    <tr><th>property</th><th>type</th><th>description</th></tr>
+    <tr>
+      <td><code>view.id</code></td>
+      <td>i64</td>
+      <td>Unique view identifier.</td>
+    </tr>
+    <tr>
+      <td><code>view.offset</code></td>
+      <td>Vector2</td>
+      <td>View offset (x, y) in session space.</td>
+    </tr>
+    <tr>
+      <td><code>view.zoom</code></td>
+      <td>f64</td>
+      <td>Current zoom level.</td>
+    </tr>
+    <tr>
+      <td><code>view.frame_width</code></td>
+      <td>f64</td>
+      <td>Image width in pixels.</td>
+    </tr>
+    <tr>
+      <td><code>view.frame_height</code></td>
+      <td>f64</td>
+      <td>Image height in pixels.</td>
+    </tr>
+  </table>
+
+  <h3>drawing</h3>
+
+  <p>
+    These functions are available inside <code>draw()</code> to render overlays
+    on top of the editor. They draw in screen space.
+  </p>
+
+  <table>
+    <tr><th>function</th><th>description</th></tr>
+    <tr>
+      <td><code>draw_text(pos, text)</code></td>
+      <td>Draw white text at the given position.</td>
+    </tr>
+    <tr>
+      <td><code>draw_text(pos, text, color)</code></td>
+      <td>Draw colored text.</td>
+    </tr>
+    <tr>
+      <td><code>draw_line(p1, p2)</code></td>
+      <td>Draw a white line between two points.</td>
+    </tr>
+    <tr>
+      <td><code>draw_line(p1, p2, color)</code></td>
+      <td>Draw a colored line.</td>
+    </tr>
+  </table>
+
+  <h3>constructors</h3>
+
+  <p>
+    Helper functions for creating common types:
+  </p>
+
+  <table>
+    <tr><th>function</th><th>returns</th><th>description</th></tr>
+    <tr>
+      <td><code>vec2(x, y)</code></td>
+      <td>Vector2</td>
+      <td>2D vector / point.</td>
+    </tr>
+    <tr>
+      <td><code>rect(x1, y1, x2, y2)</code></td>
+      <td>Rect</td>
+      <td>Rectangle from two corners.</td>
+    </tr>
+    <tr>
+      <td><code>rgb8(r, g, b)</code></td>
+      <td>Rgba8</td>
+      <td>Color with full opacity.</td>
+    </tr>
+    <tr>
+      <td><code>rgb8(r, g, b, a)</code></td>
+      <td>Rgba8</td>
+      <td>Color with alpha.</td>
+    </tr>
+    <tr>
+      <td><code>mat4_identity()</code></td>
+      <td>Mat4</td>
+      <td>4x4 identity matrix.</td>
+    </tr>
+    <tr>
+      <td><code>mat4_translation(x, y)</code></td>
+      <td>Mat4</td>
+      <td>Translation matrix.</td>
+    </tr>
+    <tr>
+      <td><code>mat4_rotation_z(angle)</code></td>
+      <td>Mat4</td>
+      <td>Z-axis rotation (radians).</td>
+    </tr>
+  </table>
+
+  <h3>system</h3>
+
+  <table>
+    <tr><th>function</th><th>description</th></tr>
+    <tr>
+      <td><code>register_command(name, help)</code></td>
+      <td>Register a command (e.g. <code>"tool/start"</code>). Invoked via <code>:tool/start</code> in the editor.</td>
+    </tr>
+    <tr>
+      <td><code>script_mode(name)</code></td>
+      <td>Create a named script mode for custom interaction.</td>
+    </tr>
+    <tr>
+      <td><code>read_file(path)</code></td>
+      <td>Read a file. Relative paths resolve from the plugin directory.</td>
+    </tr>
+    <tr>
+      <td><code>print(x)</code></td>
+      <td>Print to stdout.</td>
+    </tr>
+    <tr>
+      <td><code>info(x)</code></td>
+      <td>Log at info level.</td>
+    </tr>
+    <tr>
+      <td><code>debug(x)</code></td>
+      <td>Log at debug level.</td>
+    </tr>
+  </table>
+
+  <h3>effects</h3>
+
+  <p>
+    Effects let scripts notify the editor that something changed:
+  </p>
+
+  <table>
+    <tr><th>function</th><th>description</th></tr>
+    <tr>
+      <td><code>queue_effect(effect)</code></td>
+      <td>Queue an effect for the editor to process.</td>
+    </tr>
+    <tr>
+      <td><code>effect_view_damaged(view_id)</code></td>
+      <td>Mark a view as needing a redraw.</td>
+    </tr>
+    <tr>
+      <td><code>effect_view_paint_final(shapes)</code></td>
+      <td>Paint shapes into the view layer.</td>
+    </tr>
+    <tr>
+      <td><code>queue_active_view_rect_clear(rect)</code></td>
+      <td>Clear a rectangular region in the active view.</td>
+    </tr>
+  </table>
+
+  <h3>constants</h3>
+
+  <table>
+    <tr><th>constant</th><th>description</th></tr>
+    <tr><td><code>INPUT_STATE_PRESSED</code></td><td>Mouse button pressed.</td></tr>
+    <tr><td><code>INPUT_STATE_RELEASED</code></td><td>Mouse button released.</td></tr>
+    <tr><td><code>INPUT_STATE_REPEATED</code></td><td>Key repeat.</td></tr>
+    <tr><td><code>MOUSE_BUTTON_LEFT</code></td><td>Left mouse button.</td></tr>
+    <tr><td><code>MOUSE_BUTTON_RIGHT</code></td><td>Right mouse button.</td></tr>
+    <tr><td><code>MOUSE_BUTTON_MIDDLE</code></td><td>Middle mouse button.</td></tr>
+    <tr><td><code>MODE_NORMAL</code></td><td>Normal mode.</td></tr>
+    <tr><td><code>MODE_VISUAL</code></td><td>Visual (selection) mode.</td></tr>
+    <tr><td><code>MODE_COMMAND</code></td><td>Command-line mode.</td></tr>
+  </table>
+
+  <h2>gpu rendering</h2>
+
+  <p>
+    <em class="rxx">rxx</em> exposes a GPU rendering API built on
+    <a href="https://wgpu.rs/">wgpu</a>. This is for advanced plugins that need
+    to run custom shaders &mdash; for example, image filters, rotations, or
+    procedural effects.
+  </p>
+
+  <h3>textures</h3>
+
+  <table>
+    <tr><th>method</th><th>description</th></tr>
+    <tr>
+      <td><code>renderer.create_render_texture(w, h)</code></td>
+      <td>Create an off-screen render target.</td>
+    </tr>
+    <tr>
+      <td><code>renderer.create_compute_texture(w, h)</code></td>
+      <td>Create a 2D compute texture.</td>
+    </tr>
+    <tr>
+      <td><code>renderer.create_compute_texture(w, h, d)</code></td>
+      <td>Create a 3D compute texture.</td>
+    </tr>
+    <tr>
+      <td><code>renderer.view_render_texture(view_id)</code></td>
+      <td>Get the render texture for a view.</td>
+    </tr>
+    <tr>
+      <td><code>renderer.view_staging_texture(view_id)</code></td>
+      <td>Get the staging texture for a view.</td>
+    </tr>
+    <tr>
+      <td><code>renderer.upload_selection_to_texture(session, tex)</code></td>
+      <td>Copy the current selection pixels into a texture.</td>
+    </tr>
+  </table>
+
+  <h3>shaders &amp; pipelines</h3>
+
+  <pre><code><span class="keyword">let</span> wgsl = read_file(<span class="string">"my_shader.wgsl"</span>);
+<span class="keyword">let</span> shader = renderer.create_shader_module(wgsl);
+<span class="keyword">let</span> pipeline = renderer.create_render_pipeline_with_texture(
+    shader, <span class="string">"vs_main"</span>, <span class="string">"fs_main"</span>
+);</code></pre>
+
+  <table>
+    <tr><th>method</th><th>description</th></tr>
+    <tr>
+      <td><code>renderer.create_shader_module(wgsl)</code></td>
+      <td>Compile a WGSL shader string into a module.</td>
+    </tr>
+    <tr>
+      <td><code>renderer.create_render_pipeline_with_texture(module, vs, fs)</code></td>
+      <td>Create a render pipeline with transform + texture bind group layout.</td>
+    </tr>
+    <tr>
+      <td><code>renderer.create_render_pipeline(module, vs, fs)</code></td>
+      <td>Create a pipeline without a texture bind group.</td>
+    </tr>
+    <tr>
+      <td><code>renderer.create_render_pipeline(module, vs, fs, layouts)</code></td>
+      <td>Create a pipeline with custom bind group layouts.</td>
+    </tr>
+  </table>
+
+  <h3>bind groups</h3>
+
+  <table>
+    <tr><th>method</th><th>description</th></tr>
+    <tr>
+      <td><code>renderer.create_identity_transform_bind_group()</code></td>
+      <td>Identity transform (no transformation).</td>
+    </tr>
+    <tr>
+      <td><code>renderer.create_ortho_transform_bind_group(w, h)</code></td>
+      <td>Orthographic projection for the given dimensions.</td>
+    </tr>
+    <tr>
+      <td><code>renderer.create_ortho_custom_transform_bind_group(w, h, mat)</code></td>
+      <td>Ortho projection with a custom transform matrix.</td>
+    </tr>
+    <tr>
+      <td><code>renderer.create_view_transform_bind_group(x, y, zoom)</code></td>
+      <td>Transform matching a view's position and zoom.</td>
+    </tr>
+    <tr>
+      <td><code>renderer.create_texture_sampler_bind_group(texture)</code></td>
+      <td>Texture + sampler bind group for sampling in a shader.</td>
+    </tr>
+  </table>
+
+  <h3>vertex buffers</h3>
+
+  <table>
+    <tr><th>method</th><th>description</th></tr>
+    <tr>
+      <td><code>renderer.sprite_singleton_batch(w, h, src, dst, z, color)</code></td>
+      <td>Create a sprite batch with one quad. Returns a batch with a <code>.vertices()</code> method.</td>
+    </tr>
+    <tr>
+      <td><code>renderer.create_vertex_buffer_from_sprite_vertices(verts)</code></td>
+      <td>Upload sprite vertices to a GPU buffer.</td>
+    </tr>
+    <tr>
+      <td><code>renderer.create_fullscreen_triangle_vertex_buffer()</code></td>
+      <td>A single triangle covering the full screen (for post-processing).</td>
+    </tr>
+  </table>
+
+  <h3>the shade hook</h3>
+
+  <p>
+    The <code>shade(encoder)</code> hook gives you a GPU command encoder. Use it
+    to run off-screen render or compute passes:
+  </p>
+
+  <pre><code><span class="keyword">fn</span> <span class="fn-name">shade</span>(encoder) {
+    <span class="keyword">let</span> tex = renderer.view_staging_texture(
+        session.active_view_id
+    );
+    <span class="keyword">let</span> pass = encoder.begin_render_pass(
+        <span class="string">"my_effect"</span>,
+        [color_attachment(tex, load_load(), store_store())]
+    );
+    pass.set_pipeline(pipeline);
+    pass.set_bind_group(<span class="number">0</span>, transform_bg);
+    pass.set_bind_group(<span class="number">1</span>, texture_bg);
+    pass.set_vertex_buffer(<span class="number">0</span>, vbuf);
+    pass.draw(<span class="number">6</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>);
+}</code></pre>
+
+  <p>
+    Color attachment helpers:
+  </p>
+
+  <ul>
+    <li><code>color_attachment(texture, load_op, store_op)</code> &mdash; create a color attachment.</li>
+    <li><code>load_load()</code> &mdash; preserve existing contents.</li>
+    <li><code>load_clear(r, g, b, a)</code> &mdash; clear with a color.</li>
+    <li><code>store_store()</code> &mdash; store the result.</li>
+  </ul>
+
+  <h3>the render hook</h3>
+
+  <p>
+    The <code>render(pass)</code> hook gives you a render pass targeting the screen.
+    Use it to draw custom geometry into the final output:
+  </p>
+
+  <pre><code><span class="keyword">fn</span> <span class="fn-name">render</span>(pass) {
+    <span class="keyword">let</span> vid = session.active_view_id;
+    <span class="keyword">let</span> view = session.view(vid);
+    <span class="keyword">let</span> bg = renderer.create_view_transform_bind_group(
+        session.offset_x + view.offset.x,
+        session.offset_y + view.offset.y,
+        view.zoom.to_float()
+    );
+    <span class="keyword">let</span> tex_bg = renderer.create_texture_sampler_bind_group(
+        renderer.view_render_texture(vid)
+    );
+    pass.set_pipeline(my_pipeline);
+    pass.set_bind_group(<span class="number">0</span>, bg);
+    pass.set_bind_group(<span class="number">1</span>, tex_bg);
+    pass.set_vertex_buffer(<span class="number">0</span>, my_vbuf);
+    pass.draw(<span class="number">6</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>);
+}</code></pre>
+
+  <h2>examples</h2>
+
+  <h3>mode indicator overlay</h3>
+
+  <p>
+    A simple plugin that shows the current editor mode in the corner:
+  </p>
+
+  <pre><code><span class="keyword">fn</span> <span class="fn-name">init</span>(session_in, renderer_in) {
+    <span class="keyword">let</span> session = session_in;
+    <span class="keyword">let</span> renderer = renderer_in;
+}
+
+<span class="keyword">fn</span> <span class="fn-name">draw</span>() {
+    <span class="keyword">let</span> mode = session.mode.to_string();
+    <span class="keyword">let</span> color = <span class="keyword">if</span> mode == <span class="string">"normal"</span> {
+        rgb8(<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>)
+    } <span class="keyword">else if</span> mode.starts_with(<span class="string">"visual"</span>) {
+        rgb8(<span class="number">0xff</span>, <span class="number">0x33</span>, <span class="number">0x66</span>)
+    } <span class="keyword">else</span> {
+        rgb8(<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>)
+    };
+    draw_text(vec2(<span class="number">10.0</span>, <span class="number">10.0</span>), mode, color);
+}</code></pre>
+
+  <h3>tracking views with commands</h3>
+
+  <p>
+    A plugin that tags views and draws labels above them:
+  </p>
+
+  <pre><code><span class="keyword">fn</span> <span class="fn-name">init</span>(session_in, renderer_in) {
+    <span class="keyword">let</span> session = session_in;
+    <span class="keyword">let</span> renderer = renderer_in;
+    <span class="keyword">let</span> tagged = #{};
+    register_command(<span class="string">"tag/on"</span>, <span class="string">"Tag active view"</span>);
+    register_command(<span class="string">"tag/off"</span>, <span class="string">"Untag active view"</span>);
+}
+
+<span class="keyword">fn</span> <span class="fn-name">cmd_tag_on</span>(args) {
+    <span class="keyword">let</span> vid = session.active_view_id;
+    tagged[<span class="string">`${vid}`</span>] = true;
+}
+
+<span class="keyword">fn</span> <span class="fn-name">cmd_tag_off</span>(args) {
+    <span class="keyword">let</span> vid = session.active_view_id;
+    tagged.remove(<span class="string">`${vid}`</span>);
+}
+
+<span class="keyword">fn</span> <span class="fn-name">draw</span>() {
+    <span class="keyword">for</span> view <span class="keyword">in</span> session.views() {
+        <span class="keyword">if</span> <span class="string">`${view.id}`</span> <span class="keyword">in</span> tagged {
+            <span class="keyword">let</span> x = session.offset_x + view.offset.x;
+            <span class="keyword">let</span> y = session.offset_y + view.offset.y - <span class="number">20.0</span>;
+            draw_text(vec2(x, y), <span class="string">"TAGGED"</span>, rgb8(<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>));
+        }
+    }
+}
+
+<span class="keyword">fn</span> <span class="fn-name">view_removed</span>(view_id) {
+    tagged.remove(<span class="string">`${view_id}`</span>);
+}</code></pre>
+
+  <hr>
+
+  <div class="footer">
+    <p><a href="index.html">back to home</a></p>
+    <p>&copy; 2026 Guy Sviry</p>
+  </div>
+
+</body>
+</html>

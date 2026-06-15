@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>rxx — a pixel editor, reborn</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <p class="logo">
+    <a href="/"><img src="rxx.png" alt="rxx"></a>
+  </p>
+
+  <h1>
+    <em class="rxx">rxx</em>
+    <span class="subtitle">a hackable pixel editor</span>
+  </h1>
+
+  <p class="nav">
+    <a href="https://github.com/guysv/rxx">source</a>
+    <a href="#install">install</a>
+    <a href="scripting.html">scripting guide</a>
+    <a href="#about">about</a>
+  </p>
+
+  <p>
+    <em class="rxx">rxx</em> is a fork of <a href="https://rx.cloudhead.io/"><em class="rx">rx</em></a>,
+    the minimalist pixel editor, continuing development with new features, namely an integrated
+    <a href="https://rhai.rs/">Rhai</a> scripting layer.
+  </p>
+
+  <div class="warning-box">
+    <p>
+      <em class="rxx">rxx</em> is still in early development — expect frequent script API breakages. Please report issues and ideas on the <a href="https://github.com/guysv/rxx/issues">issues page</a>.
+    </p>
+  </div>
+
+  <h2><a href="scripting.html" style="color: inherit; text-decoration: none;">scripting</a></h2>
+
+  <ul>
+    <li>Plug-in rhai scripts extend the editor's functionality.</li>
+    <li>Hot-reload scripts without restarting the editor.</li>
+    <li>Simple to implement, event-based plugin script format.</li>
+    <li>Powerful APIs to manipulate the editor's state and graphic pipelines.</li>
+  </ul>
+
+  <h2 id="install">install</h2>
+
+  <p>
+    <em class="rxx">rxx</em> supports <strong>Linux</strong>, <strong>macOS</strong>,
+    and <strong>Windows</strong> with OpenGL 3.3 or later.
+  </p>
+
+  <h3>from source</h3>
+
+  <p>
+    With <a href="https://crates.io/install">cargo</a> and
+    <a href="https://cmake.org/download/">cmake</a> installed:
+  </p>
+
+  <pre><code>cargo install \
+    --git https://github.com/guysv/rxx</code></pre>
+
+  <p>
+    This installs <em class="rxx">rxx</em> under <code>~/.cargo/bin/rxx</code>.
+    Use <code>--root &lt;prefix&gt;</code> for a custom location.
+  </p>
+
+  <p>
+    On <strong>macOS</strong>, Xcode and the Xcode Command Line Tools are
+    required. Install cmake with <code>brew install cmake</code>.
+  </p>
+
+  <h2 id="about">about</h2>
+
+  <p>
+    <em class="rxx">rxx</em> is free software, licensed under the <strong>GPL</strong>.
+  </p>
+
+  <hr>
+
+  <div class="footer">
+    <p>&copy; 2026 Guy Sviry</p>
+  </div>
+
+</body>
+</html>
