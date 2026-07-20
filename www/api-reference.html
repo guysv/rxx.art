@@ -99,14 +99,6 @@
     <tr><td><code>draw(state, rx)</code></td><td>per frame: UI-tier text/line drawing (<code>rx.draw_text</code> / <code>rx.draw_line</code> are only live here)</td></tr>
   </table>
 
-  <blockquote>
-    <p>
-      The <code>update</code> hook fires every frame: derive edges, never count,
-      if the result is visible (replay digests treat every distinct frame as
-      unique).
-    </p>
-  </blockquote>
-
   <h2 id="session">session &amp; modes</h2>
 
   <table>
