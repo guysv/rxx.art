@@ -23,307 +23,322 @@
   <p class="nav">
     <a href="index.html">home</a>
     <a href="#overview">overview</a>
-    <a href="#commands">registering commands</a>
+    <a href="#commands">commands</a>
     <a href="#other-events">other events</a>
+    <a href="#script-modes">script modes</a>
     <a href="#gpu-pipeline">GPU pipeline hooks</a>
+    <a href="api-reference.html">API reference</a>
   </p>
 
   <p>
-    <em class="rxx">rxx</em> embeds a <a href="https://rhai.rs/">Rhai</a> scripting engine
-    that lets you extend the editor with plugins. Plugins are scripts that can draw overlays,
-    register custom commands, extend GPU pipelines, and react to user input.
+    <em class="rxx">rxx</em> embeds a <a href="https://rune-rs.github.io/">Rune</a>
+    scripting engine that lets you extend the editor with plugins. Plugins are
+    scripts that can draw overlays, register custom commands, extend GPU
+    pipelines, and react to user input. This guide walks through the core ideas;
+    the <a href="api-reference.html">API reference</a> has the full surface.
   </p>
 
   <h2 id="overview">overview</h2>
 
   <p>
-    When launching <em class="rxx">rxx</em> with the <code>-p &lt;plugin-directory&gt;</code> flag,
-    <em class="rxx">rxx</em> will scan the directory for <code>.rhai</code> scripts and load them.
+    A plugin is a <code>&lt;name&gt;.rune</code> file in the plugin directory, or
+    a <code>&lt;name&gt;/&lt;name&gt;.rune</code> package whose directory carries
+    its assets (WGSL shaders, PNG icons). The plugin directory defaults to the OS
+    config dir's <code>plugins/</code> subdirectory; point <em class="rxx">rxx</em>
+    elsewhere with <code>--plugin-dir &lt;path&gt;</code>. Plugins load in
+    lexicographic order, and hot-reload when their file changes &mdash; no
+    restart.
   </p>
 
   <p>
-    After a script is loaded, <em class="rxx">rxx</em> calls the Rhai <code>init()</code> function
-    if it is defined in the script. This function is the entry point for plugin initialization:
-    you can register commands, and set up global variables will define the plugin's state.
+    Every plugin exports <code>pub fn init(rx)</code>. It runs once at load and
+    <strong>returns the plugin's state value</strong> &mdash; usually a map
+    (<code>#{ ... }</code>). That value is handed back as the first argument of
+    every other hook, command handler, and export, so plugin state is explicit
+    rather than global.
   </p>
 
   <div class="warning-box">
     <p>
-      Variables declared inside <code>init()</code> are visible to other callbacks (<code>draw</code>, <code>cmd_*</code>, etc.), but variables defined in the outer scope of the script are <em>not</em>. This is due to working around <a href="https://rhai.rs/book/language/shadow.html">Rhai's variable shadowing</a>: each callback runs in a scope that would shadow script-level variables, so plugin state must be defined in <code>init()</code> to be shared.
+      A script error or GPU validation error disables only the offending plugin
+      and posts one message &mdash; other plugins keep running, and the frame
+      survives. During development, watch the message line.
     </p>
   </div>
 
   <p>
-    There are many more rhai "hooks" that scripts can provide. Let's take a look at a very simple example
-    of a plugin that implements a useful feature first: a classic vim 'current mode' indicator.
+    Let's start with a small but genuinely useful plugin: a classic vim-style
+    'current mode' indicator. It defines two hooks &mdash; <code>init</code> to
+    set up state, and <code>draw</code> to paint the overlay each frame.
   </p>
 
-  <pre><code><span class="hl-c">// mode-vis.rxx - current mode indicator plugin</span>
+  <pre><code><span class="hl-c">// mode-vis.rune - current mode indicator</span>
 
-<span class="hl-k">fn</span> <span class="hl-f">init</span>() {
-    <span class="hl-c">// plugin constants</span>
-    <span class="hl-k">const</span> TEXT_POS = <span class="hl-f">vec2</span>(<span class="hl-n">10.0</span>, <span class="hl-n">46.0</span>);
-    <span class="hl-k">const</span> NORMAL_COLOR = <span class="hl-f">rgb8</span>(<span class="hl-n">255</span>, <span class="hl-n">255</span>, <span class="hl-n">255</span>);
-    <span class="hl-k">const</span> VISUAL_COLOR = <span class="hl-f">rgb8</span>(<span class="hl-n">0xff</span>, <span class="hl-n">0x33</span>, <span class="hl-n">0x66</span>);
-    <span class="hl-k">const</span> SCRIPT_COLOR = <span class="hl-f">rgb8</span>(<span class="hl-n">0xff</span>, <span class="hl-n">0x33</span>, <span class="hl-n">0x66</span>);
-    <span class="hl-c">// prints to stdout</span>
-    <span class="hl-f">print</span>(<span class="hl-s">`mode-vis.rxx initialized`</span>);
+<span class="hl-k">const</span> TEXT_X = <span class="hl-n">10.0</span>;
+<span class="hl-k">const</span> TEXT_Y = <span class="hl-n">46.0</span>;
+
+<span class="hl-k">pub fn</span> <span class="hl-f">init</span>(rx) {
+    <span class="hl-c">// no state needed; return an empty map</span>
+    #{}
 }
 
-<span class="hl-k">fn</span> <span class="hl-f">draw</span>() {
-    <span class="hl-k">let</span> mode_string = session.mode.<span class="hl-f">to_string</span>();
-    <span class="hl-k">let</span> widget_string = <span class="hl-s">`-- ${mode_string.<span class="hl-f">to_upper</span>()} --`</span>;
+<span class="hl-k">pub fn</span> <span class="hl-f">draw</span>(state, rx) {
+    <span class="hl-k">let</span> mode = rx.<span class="hl-f">mode</span>();
+    <span class="hl-k">let</span> label = <span class="hl-s">`-- ${mode.<span class="hl-f">to_uppercase</span>()} --`</span>;
 
-    <span class="hl-c">// draw current mode indicator</span>
-    <span class="hl-k">if</span> mode_string == <span class="hl-s">"normal"</span> {
-        <span class="hl-f">draw_text</span>(TEXT_POS, widget_string, NORMAL_COLOR);
-    } <span class="hl-k">else if</span> mode_string.<span class="hl-f">starts_with</span>(<span class="hl-s">"visual"</span>) {
-        <span class="hl-f">draw_text</span>(TEXT_POS, widget_string, VISUAL_COLOR);
-    } <span class="hl-k">else if</span> mode_string == <span class="hl-s">"command"</span> {
-        <span class="hl-c">// nothing - command mode is skipped</span>
+    <span class="hl-k">if</span> mode == <span class="hl-s">"normal"</span> {
+        rx.<span class="hl-f">draw_text</span>(label, TEXT_X, TEXT_Y, rx::<span class="hl-f">rgb</span>(<span class="hl-n">255</span>, <span class="hl-n">255</span>, <span class="hl-n">255</span>));
+    } <span class="hl-k">else if</span> mode.<span class="hl-f">starts_with</span>(<span class="hl-s">"visual"</span>) {
+        rx.<span class="hl-f">draw_text</span>(label, TEXT_X, TEXT_Y, rx::<span class="hl-f">rgb</span>(<span class="hl-n">0xff</span>, <span class="hl-n">0x33</span>, <span class="hl-n">0x66</span>));
+    } <span class="hl-k">else if</span> mode == <span class="hl-s">"command"</span> {
+        <span class="hl-c">// command mode is skipped</span>
     } <span class="hl-k">else</span> {
-        <span class="hl-c">// script mode</span>
-        <span class="hl-f">draw_text</span>(TEXT_POS, widget_string, SCRIPT_COLOR);
+        <span class="hl-c">// script and other modes</span>
+        rx.<span class="hl-f">draw_text</span>(label, TEXT_X, TEXT_Y, rx::<span class="hl-f">rgb</span>(<span class="hl-n">0xff</span>, <span class="hl-n">0x33</span>, <span class="hl-n">0x66</span>));
     }
 }</code></pre>
 
   <p>
-    The <code>draw()</code> hook is called every frame by <em class="rxx">rxx</em> when it composites the
-    view. Your script receives no arguments; it reads from the global <code>session</code> (and other
-    engine-provided globals) and uses drawing APIs like <code>draw_text</code> to paint overlays on top
-    of the screen buffer. Here, the plugin reads <code>session.mode</code>, formats a label, and draws it
-    at a fixed position with a color that depends on the mode. Anything you draw in <code>draw()</code>
-    is part of the same frame as the rest of the UI, so overlays stay in sync with the rest of the editor's state.
+    The <code>draw(state, rx)</code> hook is called every frame, on the UI tier
+    &mdash; this is the only place <code>rx.draw_text</code> and
+    <code>rx.draw_line</code> are live. It reads the current mode with
+    <code>rx.mode()</code>, formats a label, and paints it at a fixed position
+    in a color that depends on the mode. UI coordinates are y-down, origin
+    top-left.
   </p>
 
   <div class="video-frame">
     <video src="rrx03.mp4" controls muted loop playsinline></video>
   </div>
 
-  <h2 id="commands">registering new commands</h2>
+  <h2 id="commands">registering commands</h2>
 
   <p>
-    From <code>init()</code> you can register custom commands that the user can invoke (e.g. via the command palette).
-    Call <code>register_command(name, description)</code> with a command name and a short description.
-    For each registered command, <em class="rxx">rxx</em> will call a Rhai function when the user runs it.
+    From <code>init</code> you register commands the user can invoke from the
+    command line. <code>rx.register_command(name, sig, help, handler)</code>
+    takes a name, a typed parameter signature, a help string, and a handler
+    function. The handler is called as <code>handler(state, rx, args)</code>,
+    where <code>args</code> holds the parsed, typed arguments.
   </p>
 
-  <p>
-    The handler function must be named <code>cmd_</code> followed by the command name with slashes
-    replaced by underscores. For example, <code>greet</code> is handled by <code>cmd_greet</code>.
-    The handler receives one argument (an <code>args</code> array of strings) and can read from
-    <code>session</code> and your plugin's state. Here is a minimal example:
-  </p>
-
-  <pre><code><span class="hl-k">fn</span> <span class="hl-f">init</span>() {
-    <span class="hl-f">register_command</span>(<span class="hl-s">"greet"</span>,
-    <span class="hl-s">    "Say hello (optionally to a name)"</span>);
+  <pre><code><span class="hl-k">pub fn</span> <span class="hl-f">init</span>(rx) {
+    rx.<span class="hl-f">register_command</span>(<span class="hl-s">"greet"</span>, [<span class="hl-s">"str"</span>], <span class="hl-s">"Say hello"</span>, greet);
+    #{ count: <span class="hl-n">0</span> }
 }
 
-<span class="hl-k">fn</span> <span class="hl-f">cmd_greet</span>(args) {
-    <span class="hl-k">if</span> args.len() &gt; <span class="hl-n">0</span> {
-        <span class="hl-f">print</span>(<span class="hl-s">`Hello, ${args[<span class="hl-n">0</span>]}!`</span>);
-    } <span class="hl-k">else</span> {
-        <span class="hl-f">print</span>(<span class="hl-s">"Hello!"</span>);
-    }
+<span class="hl-k">pub fn</span> <span class="hl-f">greet</span>(state, rx, args) {
+    state.count += <span class="hl-n">1</span>;
+    rx.<span class="hl-f">message</span>(<span class="hl-s">`hello ${args[<span class="hl-n">0</span>]} (${state.count})`</span>);
 }</code></pre>
 
   <p>
-    Running <code>:greet</code> prints "Hello!"; <code>:greet Alice</code> prints "Hello, Alice!".
-    State defined in <code>init()</code> is visible to your <code>cmd_*</code> handlers and other
-    hooks (<code>draw</code>, <code>view_removed</code>, etc.), so you can keep plugin data in
-    script-level variables and update it from commands.
+    Running <code>:greet world</code> posts <code>hello world (1)</code> to the
+    message line, then <code>(2)</code>, and so on &mdash; the count lives in the
+    plugin state that <code>init</code> returned. The signature is a list of
+    type tags: <code>"int"</code>, <code>"float"</code>, <code>"str"</code>,
+    <code>"color"</code>, <code>"bool"</code>, with a trailing <code>?</code> for
+    an optional parameter. Use <code>register_command_repeating</code> for a
+    command that repeats while its bound key is held.
   </p>
 
   <h2 id="other-events">other events</h2>
 
   <p>
-    Plugins can react to view lifecycle and editor mode changes, and to mouse input. All of this
-    uses optional hooks: define a function with the right name and signature and <em class="rxx">rxx</em>
-    will call it when the corresponding event occurs.
+    Plugins react to view lifecycle, frame updates, and mouse input through
+    optional hooks &mdash; define a <code>pub fn</code> with the right name and
+    signature and <em class="rxx">rxx</em> calls it.
   </p>
 
   <h3>view lifecycle</h3>
 
   <p>
-    When the user opens or closes a view, <em class="rxx">rxx</em> calls <code>view_added(view_id)</code>
-    and <code>view_removed(view_id)</code> if your script defines them. Use these to keep
-    plugin state in sync with the set of open views. For example, if you track something per-view
-    (e.g. a lookup table keyed by view id), remove the entry in <code>view_removed</code> so you
-    don't hold stale references:
+    <code>view_added(state, rx, id)</code> and
+    <code>view_removed(state, rx, id)</code> fire when the user opens or closes a
+    view. Use them to keep per-view state in sync &mdash; e.g. drop an entry from
+    a map keyed by view id so you don't hold stale references.
   </p>
-
-  <pre><code><span class="hl-k">fn</span> <span class="hl-f">init</span>() {
-    <span class="hl-k">let</span> lookup_views = #{};
-    <span class="hl-f">register_command</span>(<span class="hl-s">"lt/on"</span>, <span class="hl-s">"Add active view to lookup set"</span>);
-    <span class="hl-f">register_command</span>(<span class="hl-s">"lt/off"</span>, <span class="hl-s">"Remove active view from lookup set"</span>);
-}
-
-<span class="hl-k">fn</span> <span class="hl-f">view_removed</span>(view_id) {
-    lookup_views.<span class="hl-f">remove</span>(<span class="hl-s">`${view_id}`</span>);
-}
-
-<span class="hl-k">fn</span> <span class="hl-f">cmd_lt_on</span>(args) {
-    <span class="hl-k">let</span> vid = session.active_view_id;
-    lookup_views[<span class="hl-s">`${vid}`</span>] = <span class="hl-n">true</span>;
-}</code></pre>
-
-  <h3>mode changes and custom script modes</h3>
-
-  <p>
-    The editor has a current <code>session.mode</code> (normal, visual, command, or a script-defined
-    mode). To implement a tool that takes over the canvas (e.g. rotate selection by dragging),
-    build a new script <code>Mode</code> instance in <code>init()</code> with <code>script_mode("description")</code>
-    and store the returned value. Then switch into it from a command with <code>session.switch_mode(your_mode)</code>.
-    While in that mode, only your plugin's <code>mouse_input</code> and <code>cursor_moved</code> hooks
-    receive input; other plugins and the default editor bindings do not.
-  </p>
-
-  <p>
-    When the user leaves your mode (e.g. by pressing Escape), <em class="rxx">rxx</em> calls
-    <code>switch_mode()</code> on your script with no arguments. Use that hook to clean up:
-    set plugin state back to idle, and call <code>queue_effect(effect_view_damaged(view_id))</code>
-    if you need the view to redraw. You can detect which mode was left via <code>session.prev_mode</code>.
-  </p>
-
-  <pre><code><span class="hl-k">fn</span> <span class="hl-f">init</span>() {
-    <span class="hl-k">let</span> rotation_mode = <span class="hl-f">script_mode</span>(<span class="hl-s">"visual (rotation)"</span>);
-    <span class="hl-k">let</span> in_progress = <span class="hl-n">false</span>;
-    <span class="hl-f">register_command</span>(<span class="hl-s">"selection/rotate"</span>, <span class="hl-s">"Rotates the selection"</span>);
-}
-
-<span class="hl-k">fn</span> <span class="hl-f">switch_mode</span>() {
-    <span class="hl-k">if</span> in_progress && session.prev_mode == rotation_mode {
-        in_progress = <span class="hl-n">false</span>;
-        <span class="hl-f">queue_effect</span>(<span class="hl-f">effect_view_damaged</span>(session.active_view_id));
-    }
-}
-
-<span class="hl-k">fn</span> <span class="hl-f">cmd_selection_rotate</span>(args) {
-    <span class="hl-k">if</span> session.selection != () {
-        in_progress = <span class="hl-n">true</span>;
-        session.<span class="hl-f">switch_mode</span>(rotation_mode);
-    }
-}</code></pre>
 
   <h3>mouse input</h3>
 
   <p>
-    Define <code>mouse_input(state, button, cursor)</code> to receive button press and release
-    events. <code>state</code> is one of <code>INPUT_STATE_PRESSED</code>, <code>INPUT_STATE_RELEASED</code>,
-    or <code>INPUT_STATE_REPEATED</code>; <code>button</code> is <code>MOUSE_BUTTON_LEFT</code>,
-    <code>MOUSE_BUTTON_RIGHT</code>, or <code>MOUSE_BUTTON_MIDDLE</code>. The <code>cursor</code> argument
-    is a position in session/screen coordinates (e.g. <code>cursor.x</code>, <code>cursor.y</code>).
+    <code>mouse_input(state, rx, button, input)</code> delivers button events:
+    <code>button</code> is <code>"left"</code>, <code>"right"</code>, or
+    <code>"middle"</code>; <code>input</code> is <code>"pressed"</code> or
+    <code>"released"</code>. The hook carries no coordinates &mdash; read the
+    cursor with <code>rx.cursor()</code> (session coordinates), or track it from
+    <code>cursor_moved(state, rx, x, y)</code>, which receives window-logical
+    coordinates (<code>rx.session_coords(x, y)</code> converts them).
+  </p>
+
+  <pre><code><span class="hl-k">pub fn</span> <span class="hl-f">cursor_moved</span>(state, rx, x, y) {
+    state.mx = x;
+    state.my = y;
+}
+
+<span class="hl-k">pub fn</span> <span class="hl-f">mouse_input</span>(state, rx, button, input) {
+    <span class="hl-k">if</span> button != <span class="hl-s">"left"</span> || input != <span class="hl-s">"pressed"</span> {
+        <span class="hl-k">return</span>;
+    }
+    <span class="hl-c">// hit-test against state.mx / state.my, then act</span>
+}</code></pre>
+
+  <blockquote>
+    <p>
+      The <code>update(state, rx)</code> hook fires every frame, before
+      rendering. Derive <em>edges</em> from it &mdash; never per-frame counters
+      &mdash; if the result is visible: replay digests treat every distinct
+      frame as unique.
+    </p>
+  </blockquote>
+
+  <h2 id="script-modes">custom script modes</h2>
+
+  <p>
+    To build a tool that takes over the canvas &mdash; rotate a selection by
+    dragging, say &mdash; enter a <em>script mode</em>. Any name passed to
+    <code>rx.switch_mode(name)</code> that isn't a builtin enters a script mode:
+    builtin input handling goes inert, escape exits, and your plugin drives
+    everything through its hooks and bindings.
   </p>
 
   <p>
-    To map the cursor to pixel coordinates in the active view (e.g. for drawing or selection),
-    use <code>session.active_view_sub_coords(cursor, precision)</code>. The second argument is a
-    sub-pixel precision in bits (e.g. <code>2</code> for quarter-pixel). The result is in view
-    space, so you can compare it with <code>session.selection</code> or use it in your own logic.
+    The command line is <em>not</em> reachable from a script mode, so you bind
+    keys to your commands in <code>init</code> with <code>rx.bind(mode, mapping)</code>
+    using <code>:map</code> syntax. The <code>switch_mode(state, rx)</code> hook
+    fires on mode edges &mdash; query <code>rx.mode()</code> (and
+    <code>rx.prev_mode()</code>) to detect leaving your mode and clean up.
   </p>
 
-  <p>
-    Define <code>cursor_moved(p)</code> to receive continuous cursor updates while the pointer moves.
-    <code>p</code> is in session coordinates. Use this for drag operations: combine with state you
-    set in <code>mouse_input</code> (e.g. <code>drag_start</code> on press, clear on release) to
-    compute deltas or angles and update your plugin state, then draw feedback in <code>draw()</code>.
-  </p>
+  <pre><code><span class="hl-k">const</span> ROTATION_MODE = <span class="hl-s">"visual (rotation)"</span>;
 
-  <pre><code><span class="hl-k">fn</span> <span class="hl-f">mouse_input</span>(state, button, cursor) {
-    <span class="hl-k">if</span> session.mode != rotation_mode { <span class="hl-k">return</span>; }
-    <span class="hl-k">let</span> view = session.<span class="hl-f">view</span>(session.active_view_id);
-    <span class="hl-k">let</span> d = view.zoom;
-    <span class="hl-k">let</span> cursor_adj = <span class="hl-f">vec2</span>(cursor.x + d/<span class="hl-n">4</span>, cursor.y + d/<span class="hl-n">4</span>);
-    <span class="hl-k">let</span> p = session.<span class="hl-f">active_view_sub_coords</span>(cursor_adj, <span class="hl-n">2</span>);
+<span class="hl-k">pub fn</span> <span class="hl-f">init</span>(rx) {
+    rx.<span class="hl-f">register_command</span>(<span class="hl-s">"selection/rotate"</span>, [], <span class="hl-s">"Rotate the selection"</span>, selection_rotate);
+    rx.<span class="hl-f">register_command</span>(<span class="hl-s">"rotate/apply"</span>, [], <span class="hl-s">"Stamp the transformed selection"</span>, apply);
 
-    <span class="hl-k">if</span> state == INPUT_STATE_PRESSED && button == MOUSE_BUTTON_RIGHT {
-        pivot = <span class="hl-k">if</span> p == pivot { () } <span class="hl-k">else</span> { p };
-    }
-    <span class="hl-k">if</span> state == INPUT_STATE_PRESSED && button == MOUSE_BUTTON_LEFT {
-        drag_start = p;
-    }
-    <span class="hl-k">if</span> state == INPUT_STATE_RELEASED && button == MOUSE_BUTTON_LEFT {
-        drag_start = (); last_p = ();
+    <span class="hl-c">// the command line is inert in a script mode, so bind keys here</span>
+    rx.<span class="hl-f">bind</span>(ROTATION_MODE, <span class="hl-s">"&lt;return&gt; :rotate/apply"</span>);
+    rx.<span class="hl-f">bind</span>(ROTATION_MODE, <span class="hl-s">"'e' :rotate/add 15"</span>);
+    rx.<span class="hl-f">bind</span>(ROTATION_MODE, <span class="hl-s">"'q' :rotate/add -15"</span>);
+
+    #{ in_progress: <span class="hl-k">false</span> }
+}
+
+<span class="hl-k">pub fn</span> <span class="hl-f">selection_rotate</span>(state, rx, args) {
+    <span class="hl-k">if</span> rx.<span class="hl-f">selection</span>().<span class="hl-f">is_some</span>() {
+        state.in_progress = <span class="hl-k">true</span>;
+        rx.<span class="hl-f">switch_mode</span>(ROTATION_MODE);
     }
 }
 
-<span class="hl-k">fn</span> <span class="hl-f">cursor_moved</span>(p) {
-    <span class="hl-k">if</span> drag_start != () {
-        <span class="hl-c">// p in session coords; convert drag_start/pivot to session and compute angle</span>
-        <span class="hl-k">let</span> angle = <span class="hl-f">vector_angle</span>(pivot_session, drag_start_session, p.<span class="hl-f">to_vec2</span>());
-        rotation_angle = angle;
+<span class="hl-k">pub fn</span> <span class="hl-f">switch_mode</span>(state, rx) {
+    <span class="hl-c">// fired on mode edges; clean up when we've left our mode</span>
+    <span class="hl-k">let</span> mode = rx.<span class="hl-f">mode</span>();
+    <span class="hl-k">if</span> state.in_progress && mode != ROTATION_MODE && mode != <span class="hl-s">"command"</span> {
+        state.in_progress = <span class="hl-k">false</span>;
+        rx.<span class="hl-f">damage_view</span>(rx.<span class="hl-f">active_view_id</span>());
     }
 }</code></pre>
+
+  <p>
+    While in the mode, only your plugin's <code>mouse_input</code> and
+    <code>cursor_moved</code> hooks see input. Track the drag, compute an angle
+    from the cursor relative to a pivot, and preview the result in the view's
+    staging texture from <code>shade</code> (below). On <code>:rotate/apply</code>
+    you stamp it into the view as a recorded, undoable edit. The full
+    implementation ships as the <code>rotate-scale</code> sample plugin.
+  </p>
 
   <h2 id="gpu-pipeline">GPU pipeline hooks</h2>
 
   <p>
-    For custom GPU work, scripts can define <code>shade(encoder)</code> and <code>render(pass)</code>.
-    Both are optional. They run during the frame's command encoding: <code>shade</code> first (with a
-    command encoder), then the engine starts the main render pass and calls <code>render</code> with
-    that pass.
+    For custom GPU work, plugins define <code>shade(state, rx, encoder)</code>
+    and <code>render(state, rx, pass)</code>. <code>shade</code> runs first, with
+    the frame's command encoder, before screen composition &mdash; record render
+    or compute passes onto script textures, view layers, or a view's staging
+    overlay. <code>render</code> runs on the live screen pass, for screen-space
+    drawing.
   </p>
-
-  <h3>shade(encoder)</h3>
 
   <p>
-    <code>shade(encoder)</code> receives a command encoder. Use it to record your own compute or
-    render passes. Call <code>encoder.begin_compute_pass("name")</code> to start a compute pass, or
-    <code>encoder.begin_render_pass("name", [color_attachment(texture, load_load(), store_store())])</code>
-    to start a render pass that targets a texture (e.g. <code>renderer.view_staging_texture(view_id)</code>).
-    Then set pipeline, bind groups, and vertex buffer on the pass and call <code>pass.draw(...)</code>.
-    The <code>renderer</code> API provides <code>create_shader_module</code>, <code>create_render_pipeline_with_texture</code>,
-    <code>create_vertex_buffer_from_sprite_vertices</code>, <code>create_view_transform_bind_group</code>,
-    <code>create_ortho_custom_transform_bind_group</code>, <code>create_texture_sampler_bind_group</code>,
-    and related helpers. Use <code>shade</code> when you need to render into an offscreen or staging
-    texture, or run compute, before the main view is composited.
+    Resources are created from <code>init</code> (or a command handler):
+    <code>rx.create_shader(wgsl)</code> compiles WGSL,
+    <code>rx.create_render_pipeline(shader, vs, fs, textures)</code> builds a
+    pipeline (sprite vertex layout, alpha blending, <code>textures</code> = 0&ndash;3
+    texture groups), and <code>rx.create_texture(w, h)</code> /
+    <code>rx.read_png(path)</code> supply texture data. Bind groups and sprite
+    vertices come from the <code>rx.create_*_bind_group</code> and
+    <code>rx.create_sprite_vertices*</code> helpers.
   </p>
 
-  <h3>render(pass)</h3>
+  <h3>shade(state, rx, encoder)</h3>
 
   <p>
-    <code>render(pass)</code> receives the active render pass for the current frame. The engine has
-    already begun the pass; your script issues draw calls into it. Use <code>session.active_view_id</code>
-    and <code>session.view(vid)</code> to get view position and zoom, and <code>renderer.view_render_texture(vid)</code>
-    to bind the view's framebuffer. Set your pipeline, bind groups, and vertex buffer on <code>pass</code>,
-    then <code>pass.draw(vertex_count, instance_count, first_vertex, first_instance)</code>. Use
-    <code>render</code> when you want to draw directly into the view (e.g. full-screen effects or
-    overlays that must be part of the same pass).
+    Begin a pass on the encoder (<code>begin_render_pass</code>,
+    <code>begin_view_pass</code>, <code>begin_staging_pass</code>, or
+    <code>begin_compute_pass</code>), then set pipeline, bind groups, and vertex
+    buffer and call <code>draw</code>. One pass is open at a time; beginning a
+    new one ends its predecessor. Use the staging overlay for an uncommitted
+    preview (cleared every frame), or a view pass followed by
+    <code>rx.touch_view(id)</code> to record an undoable edit.
   </p>
 
-  <pre><code><span class="hl-k">fn</span> <span class="hl-f">shade</span>(encoder) {
-    <span class="hl-k">if</span> in_progress {
-        <span class="hl-k">let</span> staging_texture = renderer.<span class="hl-f">view_staging_texture</span>(session.active_view_id);
-        <span class="hl-k">let</span> pass = encoder.<span class="hl-f">begin_render_pass</span>(<span class="hl-s">"cleanedge"</span>, [<span class="hl-f">color_attachment</span>(staging_texture, <span class="hl-f">load_load</span>(), <span class="hl-f">store_store</span>())]);
-        pass.<span class="hl-f">set_pipeline</span>(pipeline);
-        pass.<span class="hl-f">set_bind_group</span>(<span class="hl-n">0</span>, transform_bind_group);
-        pass.<span class="hl-f">set_bind_group</span>(<span class="hl-n">1</span>, clipboard_bind_group);
-        pass.<span class="hl-f">set_vertex_buffer</span>(<span class="hl-n">0</span>, vertex_buffer);
-        pass.<span class="hl-f">draw</span>(<span class="hl-n">6</span>, <span class="hl-n">1</span>, <span class="hl-n">0</span>, <span class="hl-n">0</span>);
+  <pre><code><span class="hl-k">pub fn</span> <span class="hl-f">shade</span>(state, rx, encoder) {
+    <span class="hl-k">if</span> !state.in_progress {
+        <span class="hl-k">return</span>;
     }
-}
+    <span class="hl-k">let</span> view = <span class="hl-f">active_view</span>(state, rx);
+    <span class="hl-k">let</span> dst = rx::<span class="hl-f">rect</span>(state.bx1, state.by1, state.bx2, state.by2);
 
-<span class="hl-k">fn</span> <span class="hl-f">render</span>(pass) {
-    <span class="hl-k">let</span> vid = session.active_view_id;
-    <span class="hl-k">let</span> view = session.<span class="hl-f">view</span>(vid);
-    <span class="hl-k">if</span> view != () {
-        <span class="hl-k">let</span> x = session.offset_x + view.offset.x;
-        <span class="hl-k">let</span> y = session.offset_y + view.offset.y;
-        <span class="hl-k">let</span> zoom = view.zoom.<span class="hl-f">to_float</span>();
-        <span class="hl-k">let</span> view_bind_group = renderer.<span class="hl-f">create_view_transform_bind_group</span>(x, y, zoom);
-        <span class="hl-k">let</span> view_tex_bind_group = renderer.<span class="hl-f">create_texture_sampler_bind_group</span>(renderer.<span class="hl-f">view_render_texture</span>(vid));
-        pass.<span class="hl-f">set_pipeline</span>(script_pipeline);
-        pass.<span class="hl-f">set_bind_group</span>(<span class="hl-n">0</span>, view_bind_group);
-        pass.<span class="hl-f">set_bind_group</span>(<span class="hl-n">1</span>, view_tex_bind_group);
-        pass.<span class="hl-f">set_vertex_buffer</span>(<span class="hl-n">0</span>, vertex_buffer);
-        pass.<span class="hl-f">draw</span>(<span class="hl-n">6</span>, <span class="hl-n">1</span>, <span class="hl-n">0</span>, <span class="hl-n">0</span>);
-    }
+    <span class="hl-k">let</span> tbg = rx.<span class="hl-f">create_transform_bind_group</span>(view.width, view.height, state.transform).<span class="hl-f">unwrap</span>();
+    <span class="hl-k">let</span> sbg = rx.<span class="hl-f">create_texture_bind_group</span>(state.clipboard).<span class="hl-f">unwrap</span>();
+    <span class="hl-k">let</span> verts = rx.<span class="hl-f">create_sprite_vertices</span>(state.clipboard, dst, rx::<span class="hl-f">rgb</span>(<span class="hl-n">255</span>, <span class="hl-n">255</span>, <span class="hl-n">255</span>), <span class="hl-n">0.9</span>).<span class="hl-f">unwrap</span>();
+
+    <span class="hl-c">// staging overlay: a live preview, cleared each frame</span>
+    <span class="hl-k">let</span> pass = encoder.<span class="hl-f">begin_staging_pass</span>(<span class="hl-s">"rotate-scale"</span>, state.active_view_id, <span class="hl-s">"load"</span>).<span class="hl-f">unwrap</span>();
+    pass.<span class="hl-f">set_pipeline</span>(state.nearest).<span class="hl-f">unwrap</span>();
+    pass.<span class="hl-f">set_bind_group</span>(<span class="hl-n">0</span>, tbg).<span class="hl-f">unwrap</span>();
+    pass.<span class="hl-f">set_bind_group</span>(<span class="hl-n">1</span>, sbg).<span class="hl-f">unwrap</span>();
+    pass.<span class="hl-f">set_vertex_buffer</span>(<span class="hl-n">0</span>, verts).<span class="hl-f">unwrap</span>();
+    pass.<span class="hl-f">draw</span>(verts.<span class="hl-f">count</span>(), <span class="hl-n">1</span>).<span class="hl-f">unwrap</span>();
 }</code></pre>
+
+  <h3>render(state, rx, pass)</h3>
+
+  <p>
+    <code>render</code> receives a pass over the live screen, sized to
+    <code>rx.screen_size()</code> &mdash; build screen orthos against it. Draw
+    screen-space sprites here: an overlay anchored to the window, a HUD, an icon
+    strip. The <code>layer-status</code> sample plugin uses it to draw a per-layer
+    visibility column at the screen's edge.
+  </p>
+
+  <pre><code><span class="hl-k">pub fn</span> <span class="hl-f">render</span>(state, rx, pass) {
+    <span class="hl-k">let</span> (sw, sh) = rx.<span class="hl-f">screen_size</span>();
+    <span class="hl-k">let</span> tbg = rx.<span class="hl-f">create_transform_bind_group</span>(sw, sh, rx::<span class="hl-f">mat4_identity</span>()).<span class="hl-f">unwrap</span>();
+    <span class="hl-k">let</span> sbg = rx.<span class="hl-f">create_texture_bind_group</span>(state.icons).<span class="hl-f">unwrap</span>();
+    pass.<span class="hl-f">set_pipeline</span>(state.show).<span class="hl-f">unwrap</span>();
+    pass.<span class="hl-f">set_bind_group</span>(<span class="hl-n">0</span>, tbg).<span class="hl-f">unwrap</span>();
+    pass.<span class="hl-f">set_bind_group</span>(<span class="hl-n">1</span>, sbg).<span class="hl-f">unwrap</span>();
+
+    <span class="hl-k">let</span> src = rx::<span class="hl-f">rect</span>(<span class="hl-n">0.0</span>, <span class="hl-n">0.0</span>, <span class="hl-n">16.0</span>, <span class="hl-n">16.0</span>);
+    <span class="hl-k">let</span> dst = rx::<span class="hl-f">rect</span>(<span class="hl-n">10.0</span>, <span class="hl-n">10.0</span>, <span class="hl-n">26.0</span>, <span class="hl-n">26.0</span>);
+    <span class="hl-k">let</span> v = rx.<span class="hl-f">create_sprite_vertices_src</span>(state.icons, src, dst).<span class="hl-f">unwrap</span>();
+    pass.<span class="hl-f">set_vertex_buffer</span>(<span class="hl-n">0</span>, v).<span class="hl-f">unwrap</span>();
+    pass.<span class="hl-f">draw</span>(v.<span class="hl-f">count</span>(), <span class="hl-n">1</span>).<span class="hl-f">unwrap</span>();
+}</code></pre>
+
+  <p>
+    That's the core. For the exhaustive list of functions, types, and the
+    conventions that bite (y-up rects vs y-down bytes, snapshot-vs-live reads,
+    the params-buffer sizing rule), see the
+    <a href="api-reference.html">API reference</a> &mdash; and read the sample
+    plugins under <code>plugins/</code>, which exercise all of it.
+  </p>
 
   <hr>
 
   <div class="footer">
+    <p><a href="index.html">back to home</a></p>
     <p>&copy; 2026 Guy Sviry</p>
   </div>
 

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>rxx — API reference</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <p class="logo">
+    <a href="/"><img src="rxx.png" alt="rxx"></a>
+  </p>
+
+  <h1>
+    <em class="rxx">rxx</em>
+    <span class="subtitle">API reference</span>
+  </h1>
+
+  <p class="nav">
+    <a href="index.html">home</a>
+    <a href="scripting.html">scripting guide</a>
+    <a href="#plugins">plugins</a>
+    <a href="#hooks">hooks</a>
+    <a href="#session">session</a>
+    <a href="#views">views</a>
+    <a href="#commands">commands</a>
+    <a href="#gpu">gpu</a>
+    <a href="#types">types</a>
+    <a href="#pitfalls">pitfalls</a>
+  </p>
+
+  <p>
+    The complete <em class="rxx">rxx</em> scripting API. Plugins are
+    <a href="https://rune-rs.github.io/">Rune</a> scripts; the <code>rx</code>
+    object passed to every hook is the host interface. New here? Start with the
+    <a href="scripting.html">scripting guide</a>. Every constructor that can fail
+    returns an <code>Option</code> and posts the error to the message line on
+    <code>None</code>.
+  </p>
+
+  <div class="warning-box">
+    <p>
+      <em class="rxx">rxx</em> is in early development &mdash; expect the script
+      API to change. Report breakage on the
+      <a href="https://github.com/guysv/rxx/issues">issues page</a>.
+    </p>
+  </div>
+
+  <h2 id="plugins">plugins</h2>
+
+  <p>
+    A plugin is a <code>&lt;dir&gt;/&lt;name&gt;.rune</code> file in the plugin
+    directory, or a <code>&lt;dir&gt;/&lt;name&gt;/&lt;name&gt;.rune</code>
+    package (the directory carrying its assets, e.g. WGSL shaders), loaded in
+    lexicographic order. The plugin directory defaults to the OS config dir's
+    <code>plugins/</code> subdirectory; override it with
+    <code>--plugin-dir &lt;path&gt;</code>.
+  </p>
+
+  <p>
+    <code>pub fn init(rx)</code> runs at load and returns the plugin's state
+    value, which is passed back as the first argument of every hook, command
+    handler, and export. Script errors and GPU validation errors disable the
+    plugin and post one message; other plugins are unaffected.
+  </p>
+
+  <pre><code><span class="hl-k">pub fn</span> <span class="hl-f">init</span>(rx) {
+    rx.<span class="hl-f">register_command</span>(<span class="hl-s">"greet"</span>, [<span class="hl-s">"str"</span>], <span class="hl-s">"Say hello"</span>, greet);
+    #{ count: <span class="hl-n">0</span> }
+}
+
+<span class="hl-k">pub fn</span> <span class="hl-f">greet</span>(state, rx, args) {
+    state.count += <span class="hl-n">1</span>;
+    rx.<span class="hl-f">message</span>(<span class="hl-s">`hello ${args[<span class="hl-n">0</span>]} (${state.count})`</span>);
+}</code></pre>
+
+  <h2 id="hooks">hooks</h2>
+
+  <p>
+    Defined as <code>pub fn</code> at the top level; all optional except
+    <code>init</code>.
+  </p>
+
+  <table>
+    <tr><th>hook</th><th>called</th></tr>
+    <tr><td><code>init(rx) -&gt; state</code></td><td>once at load; the return value is the plugin state</td></tr>
+    <tr><td><code>unload(state, rx)</code></td><td>before the plugin is dropped (unload / hot reload)</td></tr>
+    <tr><td><code>update(state, rx)</code></td><td>every frame, before rendering</td></tr>
+    <tr><td><code>switch_mode(state, rx)</code></td><td>on mode <em>edges</em> (query <code>rx.mode()</code>); fires once for the initial mode, and on <code>command</code>-mode entries</td></tr>
+    <tr><td><code>cursor_moved(state, rx, x, y)</code></td><td>mouse motion, window logical coords (<code>rx.session_coords(x, y)</code> converts)</td></tr>
+    <tr><td><code>mouse_input(state, rx, button, input)</code></td><td><code>button</code> is <code>"left"</code>/<code>"right"</code>/<code>"middle"</code>, <code>input</code> is <code>"pressed"</code>/<code>"released"</code></td></tr>
+    <tr><td><code>view_added(state, rx, id)</code> / <code>view_removed(state, rx, id)</code></td><td>view lifecycle</td></tr>
+    <tr><td><code>shade(state, rx, encoder)</code></td><td>per frame: record render/compute passes on the frame encoder (before screen composition)</td></tr>
+    <tr><td><code>render(state, rx, pass)</code></td><td>per frame: the live screen pass &mdash; everything drawn, present ahead &mdash; for screen-space pipeline drawing</td></tr>
+    <tr><td><code>draw(state, rx)</code></td><td>per frame: UI-tier text/line drawing (<code>rx.draw_text</code> / <code>rx.draw_line</code> are only live here)</td></tr>
+  </table>
+
+  <blockquote>
+    <p>
+      The <code>update</code> hook fires every frame: derive edges, never count,
+      if the result is visible (replay digests treat every distinct frame as
+      unique).
+    </p>
+  </blockquote>
+
+  <h2 id="session">session &amp; modes</h2>
+
+  <table>
+    <tr><th>function</th><th>notes</th></tr>
+    <tr><td><code>rx.mode() -&gt; String</code></td><td>current mode (<code>"normal"</code>, <code>"visual"</code>, <code>"command"</code>, &hellip; or a script mode)</td></tr>
+    <tr><td><code>rx.prev_mode() -&gt; Option&lt;String&gt;</code></td><td>previous mode</td></tr>
+    <tr><td><code>rx.switch_mode(name) -&gt; bool</code></td><td>builtin names switch builtin modes; any other name enters a <em>script mode</em> &mdash; builtin input handling is inert there, escape exits</td></tr>
+    <tr><td><code>rx.message(msg)</code></td><td>post to the message line</td></tr>
+    <tr><td><code>rx.fg() -&gt; Rgba8</code> / <code>rx.bg() -&gt; Rgba8</code></td><td>the color pair</td></tr>
+    <tr><td><code>rx.set_fg(color)</code></td><td>picker semantics: old fg becomes bg; transparent ignored</td></tr>
+  </table>
+
+  <h3>coordinates &amp; screen</h3>
+
+  <table>
+    <tr><th>function</th><th>notes</th></tr>
+    <tr><td><code>rx.offset() -&gt; (f64, f64)</code></td><td>workspace pan offset</td></tr>
+    <tr><td><code>rx.screen_size() -&gt; (i64, i64)</code></td><td>the <code>render</code> stage target size; build screen orthos against it</td></tr>
+    <tr><td><code>rx.cursor() -&gt; (f64, f64)</code></td><td>cursor in session coordinates</td></tr>
+    <tr><td><code>rx.session_coords(x, y) -&gt; (f64, f64)</code></td><td>window logical &rarr; session</td></tr>
+    <tr><td><code>rx.active_view_coords(x, y) -&gt; (f64, f64)</code></td><td>session &rarr; active-view (unrounded)</td></tr>
+  </table>
+
+  <p>
+    Session and view coordinates are y-up. UI coordinates (the <code>draw</code>
+    hook) are y-down, origin top-left.
+  </p>
+
+  <h2 id="views">views</h2>
+
+  <table>
+    <tr><th>function</th><th>notes</th></tr>
+    <tr><td><code>rx.active_view_id() -&gt; i64</code></td><td></td></tr>
+    <tr><td><code>rx.views() -&gt; Vec&lt;ViewInfo&gt;</code></td><td>snapshots, in view order</td></tr>
+    <tr><td><code>rx.view_pixels(id, rect) -&gt; Option&lt;Bytes&gt;</code></td><td>rgba8, row-major, from the <em>recorded snapshot</em> (see pitfalls); rect clamped</td></tr>
+    <tr><td><code>rx.view_layer_pixels(id, layer, rect) -&gt; Option&lt;Bytes&gt;</code></td><td>like <code>view_pixels</code>, but a specific layer strip (<code>0</code> = bottom); <code>rect</code> is display-space (one frame, <code>y</code> in <code>0..fh</code>). <code>None</code> for a missing view/layer. The per-layer CPU read for introspecting a non-active strip</td></tr>
+    <tr><td><code>rx.layer_visibility(id) -&gt; Vec&lt;bool&gt;</code></td><td>per-layer <code>visible</code>, bottom strip first; empty if the view doesn't exist</td></tr>
+    <tr><td><code>rx.touch_view(id)</code></td><td>mark modified &rarr; contents re-recorded (do this after painting a view via a pass)</td></tr>
+    <tr><td><code>rx.clear_view_rect(rect)</code></td><td>clear a rect of the active view to transparent &mdash; a recorded paint</td></tr>
+    <tr><td><code>rx.damage_view(id)</code></td><td>re-render from the snapshot, discarding unrecorded GPU-side paint (kill a preview)</td></tr>
+  </table>
+
+  <p>
+    <code>ViewInfo</code> fields (read-only): <code>id</code>, <code>width</code>
+    (full sheet: <code>frame_width * frames</code>), <code>height</code>,
+    <code>offset_x</code>, <code>offset_y</code>, <code>zoom</code>,
+    <code>frames</code>, <code>frame_width</code>, <code>frame_height</code>,
+    <code>nlayers</code> (1 for a flat view), <code>active_layer</code>
+    (<code>0</code> is the bottom strip).
+  </p>
+
+  <h3>selection</h3>
+
+  <table>
+    <tr><th>function</th><th>notes</th></tr>
+    <tr><td><code>rx.selection() -&gt; Option&lt;(i64, i64, i64, i64)&gt;</code></td><td>normalized (<code>x1 &lt;= x2</code>, <code>y1 &lt;= y2</code>) regardless of drag direction</td></tr>
+    <tr><td><code>rx.set_selection(x1, y1, x2, y2)</code></td><td></td></tr>
+    <tr><td><code>rx.clear_selection()</code></td><td></td></tr>
+  </table>
+
+  <p>The selection is cleared when the session returns to normal mode.</p>
+
+  <h3>settings</h3>
+
+  <table>
+    <tr><th>function</th><th>notes</th></tr>
+    <tr><td><code>rx.setting(name) -&gt; Value</code></td><td>bool / int / float / string / tuple; unit if absent</td></tr>
+    <tr><td><code>rx.set_setting(name, value) -&gt; bool</code></td><td>value must match the current type</td></tr>
+    <tr><td><code>rx.declare_setting(name, default) -&gt; bool</code></td><td>plugin-owned, <code>:set</code>-able like builtins; re-declaring is a no-op</td></tr>
+  </table>
+
+  <h2 id="commands">commands &amp; bindings</h2>
+
+  <table>
+    <tr><th>function</th><th>notes</th></tr>
+    <tr><td><code>rx.register_command(name, sig, help, handler) -&gt; bool</code></td><td><code>sig</code> is typed params: <code>"int"</code>, <code>"float"</code>, <code>"str"</code>, <code>"color"</code>, <code>"bool"</code>, suffix <code>?</code> for optional; handler is <code>handler(state, rx, args)</code></td></tr>
+    <tr><td><code>rx.register_command_repeating(...)</code></td><td>same, repeats while the bound key is held</td></tr>
+    <tr><td><code>rx.bind(mode, mapping) -&gt; bool</code></td><td>script-tier binding in a script mode; <code>:map</code> syntax, e.g. <code>"&lt;tab&gt; :v/prev"</code>, <code>"'r' :rotate 90 {:rotate 0}"</code>; wins over general bindings while the mode is active, may fire with the mouse held</td></tr>
+    <tr><td><code>rx.run_builtin(invocation) -&gt; bool</code></td><td>run a <em>builtin</em> command (script commands aren't resolvable through it)</td></tr>
+  </table>
+
+  <p>
+    Character bindings (<code>'r'</code>) fire on <code>char/received</code>, not
+    raw key input. The command line is not reachable from script modes &mdash;
+    drive script modes entirely through bindings.
+  </p>
+
+  <h3>meta plugins</h3>
+
+  <table>
+    <tr><th>function</th><th>notes</th></tr>
+    <tr><td><code>rx.export(name, handler) -&gt; bool</code></td><td>offer <code>handler(state, rx, args)</code> to other plugins, run with the <em>exporting</em> plugin's state</td></tr>
+    <tr><td><code>rx.call_plugin(plugin, name, args) -&gt; Result&lt;Value&gt;</code></td><td>call another plugin's export</td></tr>
+  </table>
+
+  <h3>UI drawing (the <code>draw</code> hook only)</h3>
+
+  <table>
+    <tr><th>function</th><th>notes</th></tr>
+    <tr><td><code>rx.draw_text(text, x, y, color)</code></td><td>UI coordinates; no-op outside <code>draw</code></td></tr>
+    <tr><td><code>rx.draw_line(p1, p2, color)</code></td><td>1px line, <code>(x, y)</code> tuples; no-op outside <code>draw</code></td></tr>
+  </table>
+
+  <h3>files &amp; output</h3>
+
+  <table>
+    <tr><th>function</th><th>notes</th></tr>
+    <tr><td><code>rx.read_file(path) -&gt; Option&lt;String&gt;</code></td><td>relative to the <em>plugin's</em> directory (shaders etc.)</td></tr>
+    <tr><td><code>rx.read_png(path) -&gt; Option&lt;(i64, i64, Bytes)&gt;</code></td><td>decode an 8-bit RGBA PNG relative to the <em>plugin's</em> directory (cursor/icon assets) &rarr; <code>(w, h, pixels)</code>, row-major rgba8 &mdash; the layout <code>upload</code>/<code>write_png</code> use</td></tr>
+    <tr><td><code>rx.write_png(path, w, h, data) -&gt; bool</code></td><td>rgba8 row-major &rarr; PNG; path resolves like <code>:export</code> (cwd-relative, <em>not</em> plugin-relative); loud on both outcomes</td></tr>
+  </table>
+
+  <h2 id="gpu">gpu: resources</h2>
+
+  <p>
+    All constructors return <code>Option</code> and post the error (shader
+    compile errors included) to the message line on <code>None</code>.
+  </p>
+
+  <table>
+    <tr><th>function</th><th>notes</th></tr>
+    <tr><td><code>rx.create_texture(w, h) -&gt; Option&lt;ScriptTexture&gt;</code></td><td>rgba8 (sRGB), max dimension 8192; owned by the plugin, dropped with its state</td></tr>
+    <tr><td><code>rx.texture_pixels(tex) -&gt; Option&lt;Bytes&gt;</code></td><td>readback, mirror of <code>upload</code>; forces a GPU sync &mdash; command-handler tool, not per-frame (see pitfalls)</td></tr>
+    <tr><td><code>rx.create_shader(wgsl) -&gt; Option&lt;ScriptShader&gt;</code></td><td></td></tr>
+    <tr><td><code>rx.create_render_pipeline(shader, vs, fs, textures) -&gt; Option&lt;ScriptPipeline&gt;</code></td><td>triangle list, sprite vertex layout, alpha blending onto rgba8; <code>textures</code> = 0&ndash;3 texture groups</td></tr>
+    <tr><td><code>rx.create_point_pipeline(shader, vs, fs, textures) -&gt; Option&lt;ScriptPipeline&gt;</code></td><td>point list, <strong>no vertex buffers</strong> &mdash; position points from <code>@builtin(vertex_index)</code>, typically <code>textureLoad</code>ing a bound texture (scatter passes); same bind-group layout as render pipelines</td></tr>
+    <tr><td><code>rx.create_compute_pipeline(shader, entry, inputs) -&gt; Option&lt;ScriptComputePipeline&gt;</code></td><td><code>inputs</code> = 1&ndash;4 input textures at bindings <code>0..n</code>, write-only rgba8 storage output at binding <code>n</code> (one group)</td></tr>
+  </table>
+
+  <p>
+    <code>ScriptTexture</code> methods: <code>width()</code>, <code>height()</code>,
+    <code>upload(bytes) -&gt; bool</code> (exactly <code>w*h*4</code> row-major
+    bytes; the call <em>moves</em> the Bytes value), <code>fill(color)</code>.
+  </p>
+
+  <h3>bind groups &amp; vertices</h3>
+
+  <p>
+    Render/point pipeline layout: group 0 = transform + params, groups
+    <code>1..=textures</code> = one texture + nearest sampler each. Texture
+    bindings are visible to both vertex and fragment stages.
+  </p>
+
+  <table>
+    <tr><th>function</th><th>notes</th></tr>
+    <tr><td><code>rx.create_transform_bind_group(w, h, transform) -&gt; Option&lt;ScriptBindGroup&gt;</code></td><td>group 0: ortho for a <code>w</code>&times;<code>h</code> target composed with <code>transform</code>; params slot zeroed (WGSL that doesn't declare binding 1 is unaffected)</td></tr>
+    <tr><td><code>rx.create_transform_params_bind_group(w, h, transform, params) -&gt; Option&lt;ScriptBindGroup&gt;</code></td><td>adds user params (1&ndash;64 floats) at group 0 binding 1: <code>var&lt;uniform&gt; params: array&lt;vec4&lt;f32&gt;, N&gt;</code> where <strong><code>N = ceil(len/4)</code></strong> &mdash; the buffer is sized to the floats passed, <em>not</em> a fixed 64, so declare <code>N</code> to match or it's a validation error; packed in order, zero-padded to the vec4; an f32 holds 24 exact integer bits &mdash; pass 32-bit masks as two 16-bit halves</td></tr>
+    <tr><td><code>rx.create_texture_bind_group(texture) -&gt; Option&lt;ScriptBindGroup&gt;</code></td><td>texture + nearest sampler, for any texture group slot</td></tr>
+    <tr><td><code>encoder.view_bind_group(view_id) -&gt; Result&lt;ScriptBindGroup&gt;</code></td><td>shade-stage: the view's <strong>live</strong> layer texture as input &mdash; unrecorded paints included, unlike <code>view_pixels</code>; built per call, so resizes are tracked next frame; binding a view as input to a pass targeting it is a validation error (disables the plugin)</td></tr>
+    <tr><td><code>rx.create_compute_bind_group(inputs, output) -&gt; Option&lt;ScriptBindGroup&gt;</code></td><td>1&ndash;4 input textures + storage output; must match the pipeline's declared count; compute reads raw (no sRGB decode)</td></tr>
+    <tr><td><code>rx.create_sprite_vertices(texture, dst, color, opacity) -&gt; Option&lt;ScriptBuffer&gt;</code></td><td>one quad mapping the whole texture onto <code>dst</code> (target pixels); six vertices</td></tr>
+    <tr><td><code>rx.create_sprite_vertices_src(texture, src, dst) -&gt; Option&lt;ScriptBuffer&gt;</code></td><td>maps only <code>src</code> (texture pixels) onto <code>dst</code>; white, full opacity</td></tr>
+  </table>
+
+  <p><code>ScriptBuffer</code>: <code>count() -&gt; i64</code> (vertex count, for <code>draw</code>).</p>
+
+  <h3>passes (the <code>shade</code> encoder)</h3>
+
+  <p>
+    <code>shade(state, rx, encoder)</code> records passes on the frame's command
+    encoder. One pass is open at a time: beginning a new pass auto-ends its
+    predecessors, and any pass left open is ended when the hook returns.
+    <code>load</code> is <code>"load"</code> (keep) or <code>"clear"</code> (to
+    transparent).
+  </p>
+
+  <table>
+    <tr><th>function</th><th>target</th></tr>
+    <tr><td><code>encoder.begin_render_pass(label, texture, load)</code></td><td>a script texture</td></tr>
+    <tr><td><code>encoder.begin_view_pass(label, view_id, load)</code></td><td>a view's layer &mdash; follow with <code>rx.touch_view(id)</code> so the edit is recorded (and undoable)</td></tr>
+    <tr><td><code>encoder.begin_staging_pass(label, view_id, load)</code></td><td>the view's staging overlay: composited above the view, cleared every frame &mdash; for uncommitted previews</td></tr>
+    <tr><td><code>encoder.begin_compute_pass(label)</code></td><td></td></tr>
+  </table>
+
+  <p>
+    <code>ScriptPass</code>: <code>set_pipeline(p)</code>,
+    <code>set_bind_group(i, g)</code>, <code>set_vertex_buffer(slot, b)</code>,
+    <code>draw(vertices, instances)</code>, <code>end()</code>.<br>
+    <code>ScriptComputePass</code>: <code>set_pipeline(p)</code>,
+    <code>set_bind_group(i, g)</code>, <code>dispatch(x, y, z)</code>,
+    <code>end()</code>.
+  </p>
+
+  <p>
+    The <code>render(state, rx, pass)</code> hook receives a
+    <code>ScriptPass</code> over the screen: same methods, screen-sized target
+    (<code>rx.screen_size()</code>), re-begun per hook so errors attribute to the
+    plugin that recorded them.
+  </p>
+
+  <h2 id="types">types &amp; constructors (free functions, <code>rx::</code>)</h2>
+
+  <table>
+    <tr><th>function</th><th>notes</th></tr>
+    <tr><td><code>rx::rgb(r, g, b) -&gt; Rgba8</code></td><td>alpha 255; fields <code>.r .g .b .a</code> readable</td></tr>
+    <tr><td><code>rx::rgba(r, g, b, a) -&gt; Rgba8</code></td><td>explicit alpha; blends in <code>draw_line</code>/<code>draw_text</code> (e.g. translucent connection wires)</td></tr>
+    <tr><td><code>rx::rect(x1, y1, x2, y2) -&gt; Rect</code></td><td>fields <code>.x1 .y1 .x2 .y2</code></td></tr>
+    <tr><td><code>rx::mat4_identity()</code> / <code>mat4_translation(x, y)</code> / <code>mat4_scale(sx, sy)</code> / <code>mat4_rotation_z(theta)</code></td><td></td></tr>
+    <tr><td><code>rx::mat4_mul(a, b)</code> / <code>rx::mat4_transform_point(m, x, y)</code></td><td></td></tr>
+    <tr><td><code>rx::atan2(y, x)</code></td><td>radians</td></tr>
+  </table>
+
+  <h2 id="pitfalls">conventions &amp; pitfalls</h2>
+
+  <ul>
+    <li><strong>Rect coords are y-up, pixel bytes are y-down.</strong>
+      <code>view_pixels</code> / selection rects and quad <code>dst</code> rects
+      use y-up view coordinates; the returned (and uploaded) byte buffers are
+      y-down rows. Painting at dst y=10 in a 128-high view lands in byte row
+      117. Selection rects from reversed drags arrive normalized.</li>
+    <li><strong>Snapshot vs live.</strong> <code>view_pixels</code> reads the
+      <em>recorded snapshot</em>: it sees a mutation only after the view was
+      touched and the frame recorded &mdash; split mutate and read into separate
+      commands a few frames apart. <code>encoder.view_bind_group</code> is the
+      live read: it sees same-frame, unrecorded paint.</li>
+    <li><strong><code>texture_pixels</code> is synchronous</strong> and sees only
+      submitted work: a readback in the same frame as a shade/render mutation
+      reads stale pixels. Same split applies.</li>
+    <li><strong>GPU errors disable the plugin.</strong> Every hook runs inside a
+      validation error scope; a GPU validation error (or script error) disables
+      the plugin, posts one message, and the frame survives.</li>
+    <li><strong>Alpha blending cannot write transparency.</strong> To erase,
+      redraw the whole layer (or a rect) from a CPU-edited copy &mdash; see the
+      LUT sampler's erase.</li>
+    <li><strong>Function arity caps at 5 slots</strong> including the receiver
+      &mdash; API functions take at most 4 arguments after <code>rx</code>.</li>
+    <li><strong>Limits:</strong> texture dimension &le; 8192; texture groups
+      0&ndash;3; compute inputs 1&ndash;4; params &le; 64 floats.</li>
+  </ul>
+
+  <hr>
+
+  <div class="footer">
+    <p><a href="index.html">back to home</a></p>
+    <p>&copy; 2026 Guy Sviry</p>
+  </div>
+
+</body>
+</html>
