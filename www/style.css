@@ -13,7 +13,7 @@ body {
   background-color: #05050a;
   max-width: 720px;
   margin: 0 auto;
-  padding: 90px 24px;
+  padding: 48px 24px 90px;
   line-height: 1.5;
   font-size: 20px;
   font-family: 'Space Mono', Consolas, monospace;
@@ -31,10 +31,7 @@ a:has(em.rx):hover {
 }
 
 .logo {
-  position: fixed;
-  top: 24px;
-  left: 24px;
-  z-index: 10;
+  margin-bottom: 24px;
 }
 .logo a {
   display: inline-block;
@@ -100,9 +97,71 @@ p {
   margin-bottom: 60px;
   font-size: 0.95em;
 }
+.nav-pages {
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #1a1a2a;
+  font-weight: bold;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+.nav-sections {
+  font-size: 0.85em;
+}
 .nav a {
   margin-right: 16px;
   white-space: nowrap;
+}
+.nav-sections a {
+  color: #BBFFEE;
+}
+.nav-sections a::before {
+  content: "#";
+  color: #00FF88;
+  margin-right: 1px;
+}
+.nav a.current {
+  color: #eee;
+}
+.nav a.current:hover {
+  text-decoration: none;
+  cursor: default;
+}
+
+/* wide screens: the logo and the doc-page section index both float in the
+   left gutter. below 1100px they collapse together into the document flow —
+   logo at page top, sections as the inline header row — before the gutter
+   gets too tight to hold them. */
+@media (min-width: 1100px) {
+  body {
+    padding-top: 90px;
+  }
+  .logo {
+    position: fixed;
+    top: 24px;
+    left: 24px;
+    z-index: 10;
+    margin-bottom: 0;
+  }
+  .nav-toc {
+    position: fixed;
+    top: 336px;
+    /* right edge tracks the content column (24px gap), so the index sticks
+       to the text on very wide screens instead of centering in the gutter */
+    right: calc(50% + 360px + 24px);
+    width: calc((100vw - 720px) / 2 - 32px);
+    max-width: 220px;
+    margin: 0;
+    padding: 0;
+    font-size: 0.8em;
+    line-height: 1.9;
+    text-align: right;
+  }
+  .nav-toc a {
+    display: block;
+    margin-right: 0;
+    white-space: normal;
+  }
 }
 
 code {
@@ -239,10 +298,6 @@ td code {
 .number { color: #FF8844; }
 
 @media (max-width: 720px) {
-  .logo {
-    position: static;
-    margin-bottom: 24px;
-  }
   body {
     font-size: 16px;
     padding: 40px 28px 90px;

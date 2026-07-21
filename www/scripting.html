@@ -20,14 +20,18 @@
     <span class="subtitle">scripting guide</span>
   </h1>
 
-  <p class="nav">
+  <p class="nav nav-pages">
     <a href="index.html">home</a>
+    <a href="scripting.html" class="current">scripting guide</a>
+    <a href="api-reference.html">API reference</a>
+    <a href="https://github.com/guysv/rxx">source</a>
+  </p>
+  <p class="nav nav-sections nav-toc">
     <a href="#overview">overview</a>
     <a href="#commands">commands</a>
     <a href="#other-events">other events</a>
     <a href="#script-modes">script modes</a>
-    <a href="#gpu-pipeline">GPU pipeline hooks</a>
-    <a href="api-reference.html">API reference</a>
+    <a href="#gpu-pipeline">GPU pipeline</a>
   </p>
 
   <p>
@@ -239,7 +243,7 @@
     implementation ships as the <code>rotate-scale</code> sample plugin.
   </p>
 
-  <h2 id="gpu-pipeline">GPU pipeline hooks</h2>
+  <h2 id="gpu-pipeline">GPU pipeline</h2>
 
   <p>
     For custom GPU work, plugins define <code>shade(state, rx, encoder)</code>
