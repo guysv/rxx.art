@@ -141,6 +141,9 @@
     <tr><td><code>rx.view_layer_pixels(id, layer, rect) -&gt; Option&lt;Bytes&gt;</code></td><td>like <code>view_pixels</code>, but a specific layer strip (<code>0</code> = bottom); <code>rect</code> is display-space (one frame, <code>y</code> in <code>0..fh</code>). <code>None</code> for a missing view/layer. The per-layer CPU read for introspecting a non-active strip</td></tr>
     <tr><td><code>rx.layer_visibility(id) -&gt; Vec&lt;bool&gt;</code></td><td>per-layer <code>visible</code>, bottom strip first; empty if the view doesn't exist</td></tr>
     <tr><td><code>rx.set_animation_frame(id, frame) -&gt; bool</code></td><td>set the view's current animation frame; wraps by its frame count; false if the view doesn't exist</td></tr>
+    <tr><td><code>rx.set_animation_sequence(id, frames) -&gt; bool</code></td><td>set a custom playback sequence of zero-based frame indices; empty restores natural order; false for a missing view or an out-of-range index</td></tr>
+    <tr><td><code>rx.animation_sequence(id) -&gt; Vec&lt;i64&gt;</code></td><td>the custom playback sequence; empty means natural order (and is also returned for a missing view)</td></tr>
+    <tr><td><code>rx.clear_animation_sequence(id) -&gt; bool</code></td><td>restore natural frame-order playback without changing the visible frame; false if the view doesn't exist</td></tr>
     <tr><td><code>rx.set_animation_preview_visible(id, visible) -&gt; bool</code></td><td>show or hide the built-in animation preview for the view; false if the view doesn't exist</td></tr>
     <tr><td><code>rx.touch_view(id)</code></td><td>mark modified &rarr; contents re-recorded (do this after painting a view via a pass)</td></tr>
     <tr><td><code>rx.clear_view_rect(rect)</code></td><td>clear a rect of the active view to transparent &mdash; a recorded paint</td></tr>
