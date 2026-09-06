@@ -98,6 +98,11 @@ p {
   font-size: 0.95em;
 }
 .nav-pages {
+  /* flex row: no inter-link whitespace or trailing margin eating width, so
+     five links + the github mark fit the 672px column on one line */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
   margin-bottom: 8px;
   padding-bottom: 8px;
   border-bottom: 1px solid #1a1a2a;
@@ -111,6 +116,15 @@ p {
 .nav a {
   margin-right: 16px;
   white-space: nowrap;
+}
+.nav-pages a {
+  margin-right: 0;
+}
+.gh {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  margin-left: 0.35em;
 }
 .nav-sections a {
   color: #BBFFEE;
