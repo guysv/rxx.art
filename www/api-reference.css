@@ -1,0 +1,36 @@
+/* API entries inherit the shared page width and navigation. */
+.api-list { margin: 20px 0; font-size: 0.85em; }
+.api-entry { padding: 16px 0; border-bottom: 1px solid #222; }
+.api-entry:first-child { border-top: 1px solid #222; }
+.api-entry dd { overflow-wrap: anywhere; }
+.api-entry > summary { list-style: none; cursor: pointer; }
+.api-entry:hover,
+.api-entry:has(> summary:focus-visible) { background-color: #141418; }
+.api-entry > summary::-webkit-details-marker { display: none; }
+.api-entry > summary:hover .api-signature,
+.api-entry > summary:focus-visible .api-signature {
+  text-shadow: 0 0 8px rgba(0, 255, 136, 0.55);
+}
+.api-entry > summary:focus-visible { outline: 1px solid #FFD27D; outline-offset: 5px; }
+.api-description { display: block; margin-top: 8px; overflow-wrap: anywhere; }
+.api-signature {
+  display: block;
+  white-space: normal;
+  overflow-x: auto;
+}
+.api-param { white-space: nowrap; }
+.api-return { display: inline-block; white-space: pre; color: #aaa; }
+
+.api-help { font-size: 0.85em; }
+.api-fields { margin: 12px 0 4px; padding-left: 16px; border-left: 1px solid #333; cursor: pointer; }
+.api-fields > div { margin-top: 12px; }
+.api-fields > div:first-child { margin-top: 0; }
+.api-fields dd { margin-top: 4px; }
+.api-type { color: #aaa; overflow-wrap: anywhere; }
+.api-result { padding-top: 12px; border-top: 1px solid #222; }
+
+@media (max-width: 600px) {
+  .api-signature-mobile .api-params { display: block; padding-left: 2ch; }
+  .api-signature-mobile .api-param { display: block; }
+  .api-signature-mobile .api-return { display: block; }
+}

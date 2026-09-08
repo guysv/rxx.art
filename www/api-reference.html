@@ -11,9 +11,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=reference-3">
+  <link rel="stylesheet" href="api-reference.css?v=9">
+  <script src="api-reference.js?v=1" defer></script>
 </head>
-<body>
+<body class="api-reference">
 
   <p class="logo">
     <a href="/"><img src="rxx.png" alt="rxx"></a>
@@ -59,6 +61,15 @@
     </p>
   </div>
 
+  <p class="api-help">
+    Click a function to show its parameter types, units, return value,
+    and failure cases. Click again to collapse it. Method receivers (<code>rx</code>,
+    <code>encoder</code>, <code>texture</code>, and <code>pass</code>) are not
+    repeated in parameter lists. <code>()</code> means no return value;
+    <code>Result&lt;T, String&gt;</code> is <code>Ok(value)</code> or
+    <code>Err(message)</code>.
+  </p>
+
   <h2 id="plugins">plugins</h2>
 
   <p>
@@ -94,66 +105,414 @@
     <code>init</code>.
   </p>
 
-  <table>
-    <tr><th>hook</th><th>called</th></tr>
-    <tr><td><code>init(rx) -&gt; state</code></td><td>once at load; the return value is the plugin state</td></tr>
-    <tr><td><code>unload(state, rx)</code></td><td>before the plugin is dropped (unload / hot reload)</td></tr>
-    <tr><td><code>update(state, rx)</code></td><td>every frame, before rendering</td></tr>
-    <tr><td><code>switch_mode(state, rx)</code></td><td>on mode <em>edges</em> (query <code>rx.mode()</code>); fires once for the initial mode, and on <code>command</code>-mode entries</td></tr>
-    <tr><td><code>cursor_moved(state, rx, x, y)</code></td><td>mouse motion, window logical coords (<code>rx.session_coords(x, y)</code> converts)</td></tr>
-    <tr><td><code>mouse_input(state, rx, button, input)</code></td><td><code>button</code> is <code>"left"</code>/<code>"right"</code>/<code>"middle"</code>, <code>input</code> is <code>"pressed"</code>/<code>"released"</code></td></tr>
-    <tr><td><code>view_added(state, rx, id)</code> / <code>view_removed(state, rx, id)</code></td><td>view lifecycle</td></tr>
-    <tr><td><code>shade(state, rx, encoder)</code></td><td>per frame: record render/compute passes on the frame encoder (before screen composition)</td></tr>
-    <tr><td><code>render(state, rx, pass)</code></td><td>per frame: the live screen pass &mdash; everything drawn, present ahead &mdash; for screen-space pipeline drawing</td></tr>
-    <tr><td><code>draw(state, rx)</code></td><td>per frame: UI-tier text/line drawing (<code>rx.draw_text</code> / <code>rx.draw_line</code> are only live here)</td></tr>
-  </table>
+  <div class="api-list">
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">init(<span class="api-params"><span class="api-param">rx</span></span>)<span class="api-return"> -&gt; Value</span></code>
+        <span class="api-description">once at load; the return value is the plugin state</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>rx</code> <span class="api-type">Ctx</span></dt><dd>Host interface for this hook call; do not retain it in plugin state.</dd></div>
+            <div class="api-result"><dt>returns <code>Value</code></dt><dd>The initial plugin state, passed to later hooks, command handlers, and exported functions.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">unload(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx</span></span>)</code>
+        <span class="api-description">before the plugin is dropped (unload / hot reload)</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>state</code> <span class="api-type">Value</span></dt><dd>The plugin state returned by init; mutate this value to keep state between calls.</dd></div>
+            <div><dt><code>rx</code> <span class="api-type">Ctx</span></dt><dd>Host interface for this hook call; do not retain it in plugin state.</dd></div>
+            <div class="api-result"><dt>returns <code>Value</code></dt><dd>Ignored by the host; normally return unit, ().</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">update(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx</span></span>)</code>
+        <span class="api-description">every frame, before rendering</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>state</code> <span class="api-type">Value</span></dt><dd>The plugin state returned by init; mutate this value to keep state between calls.</dd></div>
+            <div><dt><code>rx</code> <span class="api-type">Ctx</span></dt><dd>Host interface for this hook call; do not retain it in plugin state.</dd></div>
+            <div class="api-result"><dt>returns <code>Value</code></dt><dd>Ignored by the host; normally return unit, ().</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">switch_mode(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx</span></span>)</code>
+        <span class="api-description">on mode <em>edges</em> (query <code>rx.mode()</code>); fires once for the initial mode, and on <code>command</code>-mode entries</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>state</code> <span class="api-type">Value</span></dt><dd>The plugin state returned by init; mutate this value to keep state between calls.</dd></div>
+            <div><dt><code>rx</code> <span class="api-type">Ctx</span></dt><dd>Host interface for this hook call; do not retain it in plugin state.</dd></div>
+            <div class="api-result"><dt>returns <code>Value</code></dt><dd>Ignored by the host; normally return unit, ().</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">cursor_moved(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx,</span> <span class="api-param">x,</span> <span class="api-param">y</span></span>)</code>
+        <span class="api-description">mouse motion, window logical coords (<code>rx.session_coords(x, y)</code> converts)</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>state</code> <span class="api-type">Value</span></dt><dd>The plugin state returned by init; mutate this value to keep state between calls.</dd></div>
+            <div><dt><code>rx</code> <span class="api-type">Ctx</span></dt><dd>Host interface for this hook call; do not retain it in plugin state.</dd></div>
+            <div><dt><code>x</code> <span class="api-type">f64</span></dt><dd>Horizontal mouse position in window logical coordinates.</dd></div>
+            <div><dt><code>y</code> <span class="api-type">f64</span></dt><dd>Vertical mouse position in window logical coordinates; increases downward.</dd></div>
+            <div class="api-result"><dt>returns <code>Value</code></dt><dd>Ignored by the host; this hook does not consume the mouse event.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">mouse_input(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx,</span> <span class="api-param">button,</span> <span class="api-param">input</span></span>)</code>
+        <span class="api-description"><code>button</code> is <code>"left"</code>/<code>"right"</code>/<code>"middle"</code>, <code>input</code> is <code>"pressed"</code>/<code>"released"</code></span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>state</code> <span class="api-type">Value</span></dt><dd>The plugin state returned by init; mutate this value to keep state between calls.</dd></div>
+            <div><dt><code>rx</code> <span class="api-type">Ctx</span></dt><dd>Host interface for this hook call; do not retain it in plugin state.</dd></div>
+            <div><dt><code>button</code> <span class="api-type">String</span></dt><dd>Mouse button: &quot;left&quot;, &quot;right&quot;, or &quot;middle&quot;.</dd></div>
+            <div><dt><code>input</code> <span class="api-type">String</span></dt><dd>Button transition: &quot;pressed&quot; or &quot;released&quot;.</dd></div>
+            <div class="api-result"><dt>returns <code>Value</code></dt><dd>Ignored by the host; this hook does not consume the button event.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">view_added(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx,</span> <span class="api-param">id</span></span>)</code>
+        <span class="api-description">view opened</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>state</code> <span class="api-type">Value</span></dt><dd>The plugin state returned by init; mutate this value to keep state between calls.</dd></div>
+            <div><dt><code>rx</code> <span class="api-type">Ctx</span></dt><dd>Host interface for this hook call; do not retain it in plugin state.</dd></div>
+            <div><dt><code>id</code> <span class="api-type">i64</span></dt><dd>ID of the view that was opened.</dd></div>
+            <div class="api-result"><dt>returns <code>Value</code></dt><dd>Ignored by the host; normally return unit, ().</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">view_removed(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx,</span> <span class="api-param">id</span></span>)</code>
+        <span class="api-description">view closed</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>state</code> <span class="api-type">Value</span></dt><dd>The plugin state returned by init; mutate this value to keep state between calls.</dd></div>
+            <div><dt><code>rx</code> <span class="api-type">Ctx</span></dt><dd>Host interface for this hook call; do not retain it in plugin state.</dd></div>
+            <div><dt><code>id</code> <span class="api-type">i64</span></dt><dd>ID of the view that was closed; it may no longer be available to query.</dd></div>
+            <div class="api-result"><dt>returns <code>Value</code></dt><dd>Ignored by the host; normally return unit, ().</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">shade(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx,</span> <span class="api-param">encoder</span></span>)</code>
+        <span class="api-description">per frame: record render/compute passes on the frame encoder (before screen composition)</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>state</code> <span class="api-type">Value</span></dt><dd>The plugin state returned by init; mutate this value to keep state between calls.</dd></div>
+            <div><dt><code>rx</code> <span class="api-type">Ctx</span></dt><dd>Host interface for this hook call; do not retain it in plugin state.</dd></div>
+            <div><dt><code>encoder</code> <span class="api-type">ScriptEncoder</span></dt><dd>The current frame encoder. Begin render or compute passes here; it expires when the hook returns.</dd></div>
+            <div class="api-result"><dt>returns <code>Value</code></dt><dd>Ignored by the host. Recorded GPU commands are the output of this hook.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">render(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx,</span> <span class="api-param">pass</span></span>)</code>
+        <span class="api-description">per frame: the live screen pass &mdash; everything drawn, present ahead &mdash; for screen-space pipeline drawing</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>state</code> <span class="api-type">Value</span></dt><dd>The plugin state returned by init; mutate this value to keep state between calls.</dd></div>
+            <div><dt><code>rx</code> <span class="api-type">Ctx</span></dt><dd>Host interface for this hook call; do not retain it in plugin state.</dd></div>
+            <div><dt><code>pass</code> <span class="api-type">ScriptPass</span></dt><dd>The live screen render pass for this hook call; do not keep it for another frame.</dd></div>
+            <div class="api-result"><dt>returns <code>Value</code></dt><dd>Ignored by the host. Drawing recorded on pass is the output of this hook.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">draw(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx</span></span>)</code>
+        <span class="api-description">per frame: UI-tier text/line drawing (<code>rx.draw_text</code> / <code>rx.draw_line</code> are only live here)</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>state</code> <span class="api-type">Value</span></dt><dd>The plugin state returned by init; mutate this value to keep state between calls.</dd></div>
+            <div><dt><code>rx</code> <span class="api-type">Ctx</span></dt><dd>Host interface for this hook call; do not retain it in plugin state.</dd></div>
+            <div class="api-result"><dt>returns <code>Value</code></dt><dd>Ignored by the host; normally return unit, ().</dd></div>
+          </dl>
+    </details>
+  </div>
 
   <h2 id="session">session &amp; modes</h2>
 
-  <table>
-    <tr><th>function</th><th>notes</th></tr>
-    <tr><td><code>rx.mode() -&gt; String</code></td><td>current mode (<code>"normal"</code>, <code>"visual"</code>, <code>"command"</code>, &hellip; or a script mode)</td></tr>
-    <tr><td><code>rx.prev_mode() -&gt; Option&lt;String&gt;</code></td><td>previous mode</td></tr>
-    <tr><td><code>rx.switch_mode(name) -&gt; bool</code></td><td>builtin names switch builtin modes; any other name enters a <em>script mode</em> &mdash; builtin input handling is inert there, escape exits</td></tr>
-    <tr><td><code>rx.message(msg)</code></td><td>post to the message line</td></tr>
-    <tr><td><code>rx.fg() -&gt; Rgba8</code> / <code>rx.bg() -&gt; Rgba8</code></td><td>the color pair</td></tr>
-    <tr><td><code>rx.set_fg(color)</code></td><td>picker semantics: old fg becomes bg; transparent ignored</td></tr>
-  </table>
+  <div class="api-list">
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx.mode()<span class="api-return"> -&gt; String</span></code>
+        <span class="api-description">current mode (<code>"normal"</code>, <code>"visual"</code>, <code>"command"</code>, &hellip; or a script mode)</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt>parameters</dt><dd>None.</dd></div>
+            <div class="api-result"><dt>returns <code>String</code></dt><dd>The current mode name, such as &quot;normal&quot;, &quot;visual&quot;, &quot;command&quot;, or a script-mode name.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.prev_mode()<span class="api-return"> -&gt; Option&lt;String&gt;</span></code>
+        <span class="api-description">previous mode</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt>parameters</dt><dd>None.</dd></div>
+            <div class="api-result"><dt>returns <code>Option&lt;String&gt;</code></dt><dd>Some(name) for the previous mode; None if there is no previous mode.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx.switch_mode(<span class="api-params"><span class="api-param">name</span></span>)<span class="api-return"> -&gt; bool</span></code>
+        <span class="api-description">builtin names switch builtin modes; any other name enters a <em>script mode</em> &mdash; builtin input handling is inert there, escape exits</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>name</code> <span class="api-type">String</span></dt><dd>A builtin mode name or a nonempty script-mode name.</dd></div>
+            <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when the name is accepted and the switch is requested; false for an invalid name.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx.message(<span class="api-params"><span class="api-param">msg</span></span>)<span class="api-return"> -&gt; ()</span></code>
+        <span class="api-description">post to the message line</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>msg</code> <span class="api-type">String</span></dt><dd>Text to display in the editor message line.</dd></div>
+            <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx.fg()<span class="api-return"> -&gt; Rgba8</span></code>
+        <span class="api-description">the color pair</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt>parameters</dt><dd>None.</dd></div>
+            <div class="api-result"><dt>returns <code>Rgba8</code></dt><dd>The current foreground color.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx.bg()<span class="api-return"> -&gt; Rgba8</span></code>
+        <span class="api-description">the color pair</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt>parameters</dt><dd>None.</dd></div>
+            <div class="api-result"><dt>returns <code>Rgba8</code></dt><dd>The current background color.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx.set_fg(<span class="api-params"><span class="api-param">color</span></span>)<span class="api-return"> -&gt; ()</span></code>
+        <span class="api-description">picker semantics: old fg becomes bg; transparent ignored</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>color</code> <span class="api-type">Rgba8</span></dt><dd>RGBA color, for example rx::rgba(255, 128, 0, 255).</dd></div>
+            <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
+          </dl>
+    </details>
+  </div>
 
   <h3>coordinates &amp; screen</h3>
 
-  <table>
-    <tr><th>function</th><th>notes</th></tr>
-    <tr><td><code>rx.offset() -&gt; (f64, f64)</code></td><td>workspace pan offset</td></tr>
-    <tr><td><code>rx.screen_size() -&gt; (i64, i64)</code></td><td>the <code>render</code> stage target size; build screen orthos against it</td></tr>
-    <tr><td><code>rx.cursor() -&gt; (f64, f64)</code></td><td>cursor in session coordinates</td></tr>
-    <tr><td><code>rx.session_coords(x, y) -&gt; (f64, f64)</code></td><td>window logical &rarr; session</td></tr>
-    <tr><td><code>rx.active_view_coords(x, y) -&gt; (f64, f64)</code></td><td>session &rarr; active-view (unrounded)</td></tr>
-  </table>
+  <div class="api-list">
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx.offset()<span class="api-return"> -&gt; (f64, f64)</span></code>
+        <span class="api-description">workspace pan offset</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt>parameters</dt><dd>None.</dd></div>
+            <div class="api-result"><dt>returns <code>(f64, f64)</code></dt><dd>Workspace pan offset as (x, y), in session pixels.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx.screen_size()<span class="api-return"> -&gt; (i64, i64)</span></code>
+        <span class="api-description">the <code>render</code> stage target size; build screen orthos against it</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt>parameters</dt><dd>None.</dd></div>
+            <div class="api-result"><dt>returns <code>(i64, i64)</code></dt><dd>The render target dimensions (width, height), in session pixels.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx.cursor()<span class="api-return"> -&gt; (f64, f64)</span></code>
+        <span class="api-description">cursor in session coordinates</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt>parameters</dt><dd>None.</dd></div>
+            <div class="api-result"><dt>returns <code>(f64, f64)</code></dt><dd>Cursor position (x, y) in session coordinates.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.session_coords(<span class="api-params"><span class="api-param">x,</span> <span class="api-param">y</span></span>)<span class="api-return"> -&gt; (f64, f64)</span></code>
+        <span class="api-description">window logical &rarr; session</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>x</code> <span class="api-type">f64</span></dt><dd>Horizontal position in window logical coordinates.</dd></div>
+            <div><dt><code>y</code> <span class="api-type">f64</span></dt><dd>Vertical position in window logical coordinates.</dd></div>
+            <div class="api-result"><dt>returns <code>(f64, f64)</code></dt><dd>The converted (x, y) in session coordinates, without rounding to integer pixels.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.active_view_coords(<span class="api-params"><span class="api-param">x,</span> <span class="api-param">y</span></span>)<span class="api-return"> -&gt; (f64, f64)</span></code>
+        <span class="api-description">session &rarr; active-view (unrounded)</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>x</code> <span class="api-type">f64</span></dt><dd>Horizontal position in session coordinates.</dd></div>
+            <div><dt><code>y</code> <span class="api-type">f64</span></dt><dd>Vertical position in session coordinates.</dd></div>
+            <div class="api-result"><dt>returns <code>(f64, f64)</code></dt><dd>The converted (x, y) in active-view coordinates, without rounding to integer pixels.</dd></div>
+          </dl>
+    </details>
+  </div>
 
   <p>
-    Session and view coordinates are y-up. UI coordinates (the <code>draw</code>
-    hook) are y-down, origin top-left.
+    Session, view, and UI drawing coordinates are y-up. Mouse events use
+    window logical coordinates with y increasing downward; use
+    <code>rx.session_coords(x, y)</code> to convert mouse positions.
   </p>
 
   <h2 id="views">views</h2>
 
-  <table>
-    <tr><th>function</th><th>notes</th></tr>
-    <tr><td><code>rx.active_view_id() -&gt; i64</code></td><td></td></tr>
-    <tr><td><code>rx.views() -&gt; Vec&lt;ViewInfo&gt;</code></td><td>snapshots, in view order</td></tr>
-    <tr><td><code>rx.view_pixels(id, rect) -&gt; Option&lt;Bytes&gt;</code></td><td>rgba8, row-major, from the <em>recorded snapshot</em> (see pitfalls); rect clamped</td></tr>
-    <tr><td><code>rx.view_layer_pixels(id, layer, rect) -&gt; Option&lt;Bytes&gt;</code></td><td>like <code>view_pixels</code>, but a specific layer strip (<code>0</code> = bottom); <code>rect</code> is display-space (one frame, <code>y</code> in <code>0..fh</code>). <code>None</code> for a missing view/layer. The per-layer CPU read for introspecting a non-active strip</td></tr>
-    <tr><td><code>rx.layer_visibility(id) -&gt; Vec&lt;bool&gt;</code></td><td>per-layer <code>visible</code>, bottom strip first; empty if the view doesn't exist</td></tr>
-    <tr><td><code>rx.set_animation_frame(id, frame) -&gt; bool</code></td><td>set the view's current animation frame; wraps by its frame count; false if the view doesn't exist</td></tr>
-    <tr><td><code>rx.set_animation_sequence(id, frames) -&gt; bool</code></td><td>set a custom playback sequence of zero-based frame indices; empty restores natural order; false for a missing view or an out-of-range index</td></tr>
-    <tr><td><code>rx.animation_sequence(id) -&gt; Vec&lt;i64&gt;</code></td><td>the custom playback sequence; empty means natural order (and is also returned for a missing view)</td></tr>
-    <tr><td><code>rx.clear_animation_sequence(id) -&gt; bool</code></td><td>restore natural frame-order playback without changing the visible frame; false if the view doesn't exist</td></tr>
-    <tr><td><code>rx.set_animation_preview_visible(id, visible) -&gt; bool</code></td><td>show or hide the built-in animation preview for the view; false if the view doesn't exist</td></tr>
-    <tr><td><code>rx.touch_view(id)</code></td><td>mark modified &rarr; contents re-recorded (do this after painting a view via a pass)</td></tr>
-    <tr><td><code>rx.clear_view_rect(rect)</code></td><td>clear a rect of the active view to transparent &mdash; a recorded paint</td></tr>
-    <tr><td><code>rx.damage_view(id)</code></td><td>re-render from the snapshot, discarding unrecorded GPU-side paint (kill a preview)</td></tr>
-  </table>
+  <div class="api-list">
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx.active_view_id()<span class="api-return"> -&gt; i64</span></code>
+      </summary>
+      <dl class="api-fields">
+            <div><dt>parameters</dt><dd>None.</dd></div>
+            <div class="api-result"><dt>returns <code>i64</code></dt><dd>The active view ID; this is an identifier, not a position in rx.views().</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx.views()<span class="api-return"> -&gt; Vec&lt;ViewInfo&gt;</span></code>
+        <span class="api-description">snapshots, in view order</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt>parameters</dt><dd>None.</dd></div>
+            <div class="api-result"><dt>returns <code>Vec&lt;ViewInfo&gt;</code></dt><dd>Read-only snapshots of all views, in view order. Empty when there are no views.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.view_pixels(<span class="api-params"><span class="api-param">id,</span> <span class="api-param">rect</span></span>)<span class="api-return"> -&gt; Option&lt;Bytes&gt;</span></code>
+        <span class="api-description">rgba8, row-major, from the <em>recorded snapshot</em> (see pitfalls); rect clamped</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>id</code> <span class="api-type">i64</span></dt><dd>View ID from rx.active_view_id() or a ViewInfo snapshot.</dd></div>
+            <div><dt><code>rect</code> <span class="api-type">Rect</span></dt><dd>Requested rectangle in view coordinates (y-up); normalized and clamped to the layer bounds.</dd></div>
+            <div class="api-result"><dt>returns <code>Option&lt;Bytes&gt;</code></dt><dd>Some(bytes) from the recorded bottom-layer snapshot, RGBA8 row-major with the top row first; None for a missing view, an empty intersection, or a failed read.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.view_layer_pixels(<span class="api-params"><span class="api-param">id,</span> <span class="api-param">layer,</span> <span class="api-param">rect</span></span>)<span class="api-return"> -&gt; Option&lt;Bytes&gt;</span></code>
+        <span class="api-description">Read a recorded layer strip, with <code>0</code> as the bottom layer. The rectangle uses display-space y in <code>0..frame_height</code>; x can span the frame strip.</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>id</code> <span class="api-type">i64</span></dt><dd>View ID from rx.active_view_id() or a ViewInfo snapshot.</dd></div>
+            <div><dt><code>layer</code> <span class="api-type">i64</span></dt><dd>Zero-based layer index; 0 is the bottom layer, regardless of one-based UI labels.</dd></div>
+            <div><dt><code>rect</code> <span class="api-type">Rect</span></dt><dd>Requested rectangle in view coordinates (y-up); normalized and clamped to the layer bounds.</dd></div>
+            <div class="api-result"><dt>returns <code>Option&lt;Bytes&gt;</code></dt><dd>Some(bytes) from the requested recorded layer, RGBA8 row-major with the top row first; None for a missing view/layer, an empty intersection, or a failed read.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.layer_visibility(<span class="api-params"><span class="api-param">id</span></span>)<span class="api-return"> -&gt; Vec&lt;bool&gt;</span></code>
+        <span class="api-description">per-layer <code>visible</code>, bottom strip first; empty if the view doesn't exist</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>id</code> <span class="api-type">i64</span></dt><dd>View ID from rx.active_view_id() or a ViewInfo snapshot.</dd></div>
+            <div class="api-result"><dt>returns <code>Vec&lt;bool&gt;</code></dt><dd>One visibility flag per layer, bottom first (index 0); empty for a missing view.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.set_animation_frame(<span class="api-params"><span class="api-param">id,</span> <span class="api-param">frame</span></span>)<span class="api-return"> -&gt; bool</span></code>
+        <span class="api-description">set the view's current animation frame; wraps by its frame count; false if the view doesn't exist</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>id</code> <span class="api-type">i64</span></dt><dd>View ID from rx.active_view_id() or a ViewInfo snapshot.</dd></div>
+            <div><dt><code>frame</code> <span class="api-type">i64</span></dt><dd>Zero-based frame index; positive and negative indices wrap by the frame count.</dd></div>
+            <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when the view exists and its current frame is set; false for a missing view.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.set_animation_sequence(<span class="api-params"><span class="api-param">id,</span> <span class="api-param">frames</span></span>)<span class="api-return"> -&gt; bool</span></code>
+        <span class="api-description">set a custom playback sequence of zero-based frame indices; empty restores natural order; false for a missing view or an out-of-range index</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>id</code> <span class="api-type">i64</span></dt><dd>View ID from rx.active_view_id() or a ViewInfo snapshot.</dd></div>
+            <div><dt><code>frames</code> <span class="api-type">Vec&lt;i64&gt;</span></dt><dd>Playback order as zero-based frame indices. Repeated indices are allowed; an empty list restores natural order.</dd></div>
+            <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when accepted; false if the view is missing or any index is outside its frame range.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.animation_sequence(<span class="api-params"><span class="api-param">id</span></span>)<span class="api-return"> -&gt; Vec&lt;i64&gt;</span></code>
+        <span class="api-description">the custom playback sequence; empty means natural order (and is also returned for a missing view)</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>id</code> <span class="api-type">i64</span></dt><dd>View ID from rx.active_view_id() or a ViewInfo snapshot.</dd></div>
+            <div class="api-result"><dt>returns <code>Vec&lt;i64&gt;</code></dt><dd>The custom zero-based playback sequence; empty for natural order or a missing view.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.clear_animation_sequence(<span class="api-params"><span class="api-param">id</span></span>)<span class="api-return"> -&gt; bool</span></code>
+        <span class="api-description">restore natural frame-order playback without changing the visible frame; false if the view doesn't exist</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>id</code> <span class="api-type">i64</span></dt><dd>View ID from rx.active_view_id() or a ViewInfo snapshot.</dd></div>
+            <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when natural playback order is restored; false for a missing view. The visible frame is preserved.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.set_animation_preview_visible(<span class="api-params"><span class="api-param">id,</span> <span class="api-param">visible</span></span>)<span class="api-return"> -&gt; bool</span></code>
+        <span class="api-description">show or hide the built-in animation preview for the view; false if the view doesn't exist</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>id</code> <span class="api-type">i64</span></dt><dd>View ID from rx.active_view_id() or a ViewInfo snapshot.</dd></div>
+            <div><dt><code>visible</code> <span class="api-type">bool</span></dt><dd>true to show the built-in preview; false to suppress it.</dd></div>
+            <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when the view exists and its preview flag is set; false for a missing view.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx.touch_view(<span class="api-params"><span class="api-param">id</span></span>)<span class="api-return"> -&gt; ()</span></code>
+        <span class="api-description">mark modified &rarr; contents re-recorded (do this after painting a view via a pass)</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>id</code> <span class="api-type">i64</span></dt><dd>View ID from rx.active_view_id() or a ViewInfo snapshot.</dd></div>
+            <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx.clear_view_rect(<span class="api-params"><span class="api-param">rect</span></span>)<span class="api-return"> -&gt; ()</span></code>
+        <span class="api-description">clear a rect of the active view to transparent &mdash; a recorded paint</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>rect</code> <span class="api-type">Rect</span></dt><dd>Rectangle of the active view to erase, in y-up view coordinates; corners are normalized.</dd></div>
+            <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx.damage_view(<span class="api-params"><span class="api-param">id</span></span>)<span class="api-return"> -&gt; ()</span></code>
+        <span class="api-description">re-render from the snapshot, discarding unrecorded GPU-side paint (kill a preview)</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>id</code> <span class="api-type">i64</span></dt><dd>View ID from rx.active_view_id() or a ViewInfo snapshot.</dd></div>
+            <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
+          </dl>
+    </details>
+  </div>
 
   <p>
     <code>ViewInfo</code> fields (read-only): <code>id</code>, <code>width</code>
@@ -166,33 +525,130 @@
 
   <h3>selection</h3>
 
-  <table>
-    <tr><th>function</th><th>notes</th></tr>
-    <tr><td><code>rx.selection() -&gt; Option&lt;(i64, i64, i64, i64)&gt;</code></td><td>normalized (<code>x1 &lt;= x2</code>, <code>y1 &lt;= y2</code>) regardless of drag direction</td></tr>
-    <tr><td><code>rx.set_selection(x1, y1, x2, y2)</code></td><td></td></tr>
-    <tr><td><code>rx.clear_selection()</code></td><td></td></tr>
-  </table>
+  <div class="api-list">
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.selection()<span class="api-return"> -&gt; Option&lt;(i64, i64, i64, i64)&gt;</span></code>
+        <span class="api-description">normalized (<code>x1 &lt;= x2</code>, <code>y1 &lt;= y2</code>) regardless of drag direction</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt>parameters</dt><dd>None.</dd></div>
+            <div class="api-result"><dt>returns <code>Option&lt;(i64, i64, i64, i64)&gt;</code></dt><dd>Some((x1, y1, x2, y2)) with normalized bounds, or None when no selection exists.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.set_selection(<span class="api-params"><span class="api-param">x1,</span> <span class="api-param">y1,</span> <span class="api-param">x2,</span> <span class="api-param">y2</span></span>)<span class="api-return"> -&gt; ()</span></code>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>x1</code> <span class="api-type">i64</span></dt><dd>Horizontal coordinate of the first corner, in view pixels.</dd></div>
+            <div><dt><code>y1</code> <span class="api-type">i64</span></dt><dd>Vertical coordinate of the first corner, in y-up view pixels.</dd></div>
+            <div><dt><code>x2</code> <span class="api-type">i64</span></dt><dd>Horizontal coordinate of the second corner, in view pixels.</dd></div>
+            <div><dt><code>y2</code> <span class="api-type">i64</span></dt><dd>Vertical coordinate of the second corner, in y-up view pixels.</dd></div>
+            <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx.clear_selection()<span class="api-return"> -&gt; ()</span></code>
+      </summary>
+      <dl class="api-fields">
+            <div><dt>parameters</dt><dd>None.</dd></div>
+            <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
+          </dl>
+    </details>
+  </div>
 
   <p>The selection is cleared when the session returns to normal mode.</p>
 
   <h3>settings</h3>
 
-  <table>
-    <tr><th>function</th><th>notes</th></tr>
-    <tr><td><code>rx.setting(name) -&gt; Value</code></td><td>bool / int / float / string / tuple; unit if absent</td></tr>
-    <tr><td><code>rx.set_setting(name, value) -&gt; bool</code></td><td>value must match the current type</td></tr>
-    <tr><td><code>rx.declare_setting(name, default) -&gt; bool</code></td><td>plugin-owned, <code>:set</code>-able like builtins; re-declaring is a no-op</td></tr>
-  </table>
+  <div class="api-list">
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx.setting(<span class="api-params"><span class="api-param">name</span></span>)<span class="api-return"> -&gt; Value</span></code>
+        <span class="api-description">bool / int / float / string / tuple; unit if absent</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>name</code> <span class="api-type">String</span></dt><dd>Setting name, including its namespace when applicable, e.g. &quot;layer-status/show&quot;.</dd></div>
+            <div class="api-result"><dt>returns <code>Value</code></dt><dd>The setting as bool, i64, f64, String, or a pair of numbers. Color settings are returned as strings. An unknown setting returns unit, ().</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.set_setting(<span class="api-params"><span class="api-param">name,</span> <span class="api-param">value</span></span>)<span class="api-return"> -&gt; bool</span></code>
+        <span class="api-description">Set an existing scalar setting; the value must match its current type.</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>name</code> <span class="api-type">String</span></dt><dd>Setting name, including its namespace when applicable, e.g. &quot;layer-status/show&quot;.</dd></div>
+            <div><dt><code>value</code> <span class="api-type">Value</span></dt><dd>A bool, i64, f64, or String matching the existing setting type. Tuple and color settings are not supported by this setter.</dd></div>
+            <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when the update is applied; false for an unknown setting, a type mismatch, an unsupported type, or a rejected value.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.declare_setting(<span class="api-params"><span class="api-param">name,</span> <span class="api-param">default</span></span>)<span class="api-return"> -&gt; bool</span></code>
+        <span class="api-description">plugin-owned, <code>:set</code>-able like builtins; re-declaring is a no-op</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>name</code> <span class="api-type">String</span></dt><dd>Setting name, including its namespace when applicable, e.g. &quot;layer-status/show&quot;.</dd></div>
+            <div><dt><code>default</code> <span class="api-type">Value</span></dt><dd>Default bool, i64, f64, or String. Integer settings use unsigned 32-bit storage; use values in 0..=4294967295.</dd></div>
+            <div class="api-result"><dt>returns <code>bool</code></dt><dd>true for a supported default, including when the setting already exists (its value is preserved); false for an unsupported type.</dd></div>
+          </dl>
+    </details>
+  </div>
 
   <h2 id="commands">commands &amp; bindings</h2>
 
-  <table>
-    <tr><th>function</th><th>notes</th></tr>
-    <tr><td><code>rx.register_command(name, sig, help, handler) -&gt; bool</code></td><td><code>sig</code> is typed params: <code>"int"</code>, <code>"float"</code>, <code>"str"</code>, <code>"color"</code>, <code>"bool"</code>, suffix <code>?</code> for optional; handler is <code>handler(state, rx, args)</code></td></tr>
-    <tr><td><code>rx.register_command_repeating(...)</code></td><td>same, repeats while the bound key is held</td></tr>
-    <tr><td><code>rx.bind(mode, mapping) -&gt; bool</code></td><td>script-tier binding in a script mode; <code>:map</code> syntax, e.g. <code>"&lt;tab&gt; :v/prev"</code>, <code>"'r' :rotate 90 {:rotate 0}"</code>; wins over general bindings while the mode is active, may fire with the mouse held</td></tr>
-    <tr><td><code>rx.run_builtin(invocation) -&gt; bool</code></td><td>run a <em>builtin</em> command (script commands aren't resolvable through it)</td></tr>
-  </table>
+  <div class="api-list">
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.register_command(<span class="api-params"><span class="api-param">name,</span> <span class="api-param">sig,</span> <span class="api-param">help,</span> <span class="api-param">handler</span></span>)<span class="api-return"> -&gt; bool</span></code>
+        <span class="api-description"><code>sig</code> is typed params: <code>"int"</code>, <code>"float"</code>, <code>"str"</code>, <code>"color"</code>, <code>"bool"</code>, suffix <code>?</code> for optional; handler is <code>handler(state, rx, args)</code></span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>name</code> <span class="api-type">String</span></dt><dd>Command name without a leading colon; must not shadow a builtin or an existing script command.</dd></div>
+            <div><dt><code>sig</code> <span class="api-type">Vec&lt;String&gt;</span></dt><dd>Parameter types in order: &quot;int&quot;, &quot;float&quot;, &quot;str&quot;, &quot;color&quot;, or &quot;bool&quot;. Add ? for an optional parameter; optional parameters must come last.</dd></div>
+            <div><dt><code>help</code> <span class="api-type">String</span></dt><dd>Short help text shown for the command.</dd></div>
+            <div><dt><code>handler</code> <span class="api-type">Function</span></dt><dd>Called as handler(state, rx, args), where args is a Vec&lt;Value&gt; of parsed parameters. The handler return value is ignored.</dd></div>
+            <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when registered; false for an unavailable registration context, invalid signature, or conflicting name. Failure posts a message.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.register_command_repeating(<span class="api-params"><span class="api-param">name,</span> <span class="api-param">sig,</span> <span class="api-param">help,</span> <span class="api-param">handler</span></span>)<span class="api-return"> -&gt; bool</span></code>
+        <span class="api-description">same, repeats while the bound key is held</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>name</code> <span class="api-type">String</span></dt><dd>Command name without a leading colon; must not shadow a builtin or an existing script command.</dd></div>
+            <div><dt><code>sig</code> <span class="api-type">Vec&lt;String&gt;</span></dt><dd>Parameter types in order: &quot;int&quot;, &quot;float&quot;, &quot;str&quot;, &quot;color&quot;, or &quot;bool&quot;. Add ? for an optional parameter; optional parameters must come last.</dd></div>
+            <div><dt><code>help</code> <span class="api-type">String</span></dt><dd>Short help text shown for the command.</dd></div>
+            <div><dt><code>handler</code> <span class="api-type">Function</span></dt><dd>Called as handler(state, rx, args), where args is a Vec&lt;Value&gt; of parsed parameters. The handler return value is ignored.</dd></div>
+            <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when registered; false for an unavailable registration context, invalid signature, or conflicting name. Failure posts a message.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx.bind(<span class="api-params"><span class="api-param">mode,</span> <span class="api-param">mapping</span></span>)<span class="api-return"> -&gt; bool</span></code>
+        <span class="api-description">script-tier binding in a script mode; <code>:map</code> syntax, e.g. <code>"&lt;tab&gt; :v/prev"</code>, <code>"'r' :rotate 90 {:rotate 0}"</code>; wins over general bindings while the mode is active, may fire with the mouse held</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>mode</code> <span class="api-type">String</span></dt><dd>Nonempty script-mode name prefix for this binding.</dd></div>
+            <div><dt><code>mapping</code> <span class="api-type">String</span></dt><dd>A complete mapping in :map syntax, such as &quot;&lt;tab&gt; :v/prev&quot;; omit the :map prefix.</dd></div>
+            <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when the mapping parses and is installed; false for an invalid mode name or mapping, including trailing input.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.run_builtin(<span class="api-params"><span class="api-param">invocation</span></span>)<span class="api-return"> -&gt; bool</span></code>
+        <span class="api-description">run a <em>builtin</em> command (script commands aren't resolvable through it)</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>invocation</code> <span class="api-type">String</span></dt><dd>Builtin command and arguments without a leading colon, e.g. &quot;v/center&quot;.</dd></div>
+            <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when parsed and dispatched. false for parse failure or a script command; true does not guarantee that the builtin operation itself succeeded.</dd></div>
+          </dl>
+    </details>
+  </div>
 
   <p>
     Character bindings (<code>'r'</code>) fire on <code>char/received</code>, not
@@ -202,28 +658,99 @@
 
   <h3>meta plugins</h3>
 
-  <table>
-    <tr><th>function</th><th>notes</th></tr>
-    <tr><td><code>rx.export(name, handler) -&gt; bool</code></td><td>offer <code>handler(state, rx, args)</code> to other plugins, run with the <em>exporting</em> plugin's state</td></tr>
-    <tr><td><code>rx.call_plugin(plugin, name, args) -&gt; Result&lt;Value&gt;</code></td><td>call another plugin's export</td></tr>
-  </table>
+  <div class="api-list">
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.export(<span class="api-params"><span class="api-param">name,</span> <span class="api-param">handler</span></span>)<span class="api-return"> -&gt; bool</span></code>
+        <span class="api-description">offer <code>handler(state, rx, args)</code> to other plugins, run with the <em>exporting</em> plugin's state</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>name</code> <span class="api-type">String</span></dt><dd>Export name, unique within this plugin.</dd></div>
+            <div><dt><code>handler</code> <span class="api-type">Function</span></dt><dd>Called as handler(state, rx, args) with the exporting plugin state and a Vec&lt;Value&gt;. Its return value is passed back to the caller.</dd></div>
+            <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when exported; false for an unavailable registration context or a duplicate export name.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.call_plugin(<span class="api-params"><span class="api-param">plugin,</span> <span class="api-param">name,</span> <span class="api-param">args</span></span>)<span class="api-return"> -&gt; Result&lt;Value, String&gt;</span></code>
+        <span class="api-description">call another plugin's export</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>plugin</code> <span class="api-type">String</span></dt><dd>Name of the plugin that owns the export.</dd></div>
+            <div><dt><code>name</code> <span class="api-type">String</span></dt><dd>The exported function name.</dd></div>
+            <div><dt><code>args</code> <span class="api-type">Vec&lt;Value&gt;</span></dt><dd>Arguments passed as the handler’s args vector, in the order that export expects.</dd></div>
+            <div class="api-result"><dt>returns <code>Result&lt;Value, String&gt;</code></dt><dd>Ok(value) with the handler return value; Err(message) if unavailable, missing, not initialized, or the call fails.</dd></div>
+          </dl>
+    </details>
+  </div>
 
   <h3>UI drawing (the <code>draw</code> hook only)</h3>
 
-  <table>
-    <tr><th>function</th><th>notes</th></tr>
-    <tr><td><code>rx.draw_text(text, x, y, color)</code></td><td>UI coordinates; no-op outside <code>draw</code></td></tr>
-    <tr><td><code>rx.draw_line(p1, p2, color)</code></td><td>1px line, <code>(x, y)</code> tuples; no-op outside <code>draw</code></td></tr>
-  </table>
+  <div class="api-list">
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.draw_text(<span class="api-params"><span class="api-param">text,</span> <span class="api-param">x,</span> <span class="api-param">y,</span> <span class="api-param">color</span></span>)<span class="api-return"> -&gt; ()</span></code>
+        <span class="api-description">UI coordinates; no-op outside <code>draw</code></span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>text</code> <span class="api-type">String</span></dt><dd>Text to draw, left-aligned.</dd></div>
+            <div><dt><code>x</code> <span class="api-type">f64</span></dt><dd>Horizontal text position in UI drawing coordinates.</dd></div>
+            <div><dt><code>y</code> <span class="api-type">f64</span></dt><dd>Vertical text position in UI drawing coordinates (y-up).</dd></div>
+            <div><dt><code>color</code> <span class="api-type">Rgba8</span></dt><dd>RGBA color, for example rx::rgba(255, 128, 0, 255).</dd></div>
+            <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.draw_line(<span class="api-params"><span class="api-param">p1,</span> <span class="api-param">p2,</span> <span class="api-param">color</span></span>)<span class="api-return"> -&gt; ()</span></code>
+        <span class="api-description">1px line, <code>(x, y)</code> tuples; no-op outside <code>draw</code></span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>p1</code> <span class="api-type">(f64, f64)</span></dt><dd>Start point in UI drawing coordinates (y-up).</dd></div>
+            <div><dt><code>p2</code> <span class="api-type">(f64, f64)</span></dt><dd>End point in the same coordinates.</dd></div>
+            <div><dt><code>color</code> <span class="api-type">Rgba8</span></dt><dd>RGBA color, for example rx::rgba(255, 128, 0, 255).</dd></div>
+            <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
+          </dl>
+    </details>
+  </div>
 
   <h3>files &amp; output</h3>
 
-  <table>
-    <tr><th>function</th><th>notes</th></tr>
-    <tr><td><code>rx.read_file(path) -&gt; Option&lt;String&gt;</code></td><td>relative to the <em>plugin's</em> directory (shaders etc.)</td></tr>
-    <tr><td><code>rx.read_png(path) -&gt; Option&lt;(i64, i64, Bytes)&gt;</code></td><td>decode an 8-bit RGBA PNG relative to the <em>plugin's</em> directory (cursor/icon assets) &rarr; <code>(w, h, pixels)</code>, row-major rgba8 &mdash; the layout <code>upload</code>/<code>write_png</code> use</td></tr>
-    <tr><td><code>rx.write_png(path, w, h, data) -&gt; bool</code></td><td>rgba8 row-major &rarr; PNG; path resolves like <code>:export</code> (cwd-relative, <em>not</em> plugin-relative); loud on both outcomes</td></tr>
-  </table>
+  <div class="api-list">
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.read_file(<span class="api-params"><span class="api-param">path</span></span>)<span class="api-return"> -&gt; Option&lt;String&gt;</span></code>
+        <span class="api-description">relative to the <em>plugin's</em> directory (shaders etc.)</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>path</code> <span class="api-type">String</span></dt><dd>File path; relative paths resolve from the plugin directory, absolute paths are used as given.</dd></div>
+            <div class="api-result"><dt>returns <code>Option&lt;String&gt;</code></dt><dd>Some(text) for a UTF-8 file; None with an error message if reading or decoding fails.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.read_png(<span class="api-params"><span class="api-param">path</span></span>)<span class="api-return"> -&gt; Option&lt;(i64, i64, Bytes)&gt;</span></code>
+        <span class="api-description">decode an 8-bit RGBA PNG relative to the <em>plugin's</em> directory (cursor/icon assets) &rarr; <code>(w, h, pixels)</code>, row-major rgba8 &mdash; the layout <code>upload</code>/<code>write_png</code> use</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>path</code> <span class="api-type">String</span></dt><dd>File path; relative paths resolve from the plugin directory, absolute paths are used as given.</dd></div>
+            <div class="api-result"><dt>returns <code>Option&lt;(i64, i64, Bytes)&gt;</code></dt><dd>Some((width, height, pixels)) for an 8-bit RGBA PNG. pixels contains top-first RGBA8 rows; None if reading or decoding fails.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.write_png(<span class="api-params"><span class="api-param">path,</span> <span class="api-param">w,</span> <span class="api-param">h,</span> <span class="api-param">data</span></span>)<span class="api-return"> -&gt; bool</span></code>
+        <span class="api-description">rgba8 row-major &rarr; PNG; path resolves like <code>:export</code> (cwd-relative, <em>not</em> plugin-relative); loud on both outcomes</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>path</code> <span class="api-type">String</span></dt><dd>Output path, relative to the working directory unless absolute; existing output may be overwritten.</dd></div>
+            <div><dt><code>w</code> <span class="api-type">i64</span></dt><dd>Width in pixels; must be positive.</dd></div>
+            <div><dt><code>h</code> <span class="api-type">i64</span></dt><dd>Height in pixels; must be positive.</dd></div>
+            <div><dt><code>data</code> <span class="api-type">Bytes</span></dt><dd>Exactly w * h * 4 RGBA8 bytes, top row first. The Bytes value is moved into the call.</dd></div>
+            <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when the PNG is written; false for invalid dimensions, a byte-count mismatch, or an output error. Both outcomes post a message.</dd></div>
+          </dl>
+    </details>
+  </div>
 
   <h2 id="gpu">gpu: resources</h2>
 
@@ -232,21 +759,123 @@
     compile errors included) to the message line on <code>None</code>.
   </p>
 
-  <table>
-    <tr><th>function</th><th>notes</th></tr>
-    <tr><td><code>rx.create_texture(w, h) -&gt; Option&lt;ScriptTexture&gt;</code></td><td>rgba8 (sRGB), max dimension 8192; owned by the plugin, dropped with its state</td></tr>
-    <tr><td><code>rx.texture_pixels(tex) -&gt; Option&lt;Bytes&gt;</code></td><td>readback, mirror of <code>upload</code>; forces a GPU sync &mdash; command-handler tool, not per-frame (see pitfalls)</td></tr>
-    <tr><td><code>rx.create_shader(wgsl) -&gt; Option&lt;ScriptShader&gt;</code></td><td></td></tr>
-    <tr><td><code>rx.create_render_pipeline(shader, vs, fs, textures) -&gt; Option&lt;ScriptPipeline&gt;</code></td><td>triangle list, sprite vertex layout, alpha blending onto rgba8; <code>textures</code> = 0&ndash;3 texture groups</td></tr>
-    <tr><td><code>rx.create_point_pipeline(shader, vs, fs, textures) -&gt; Option&lt;ScriptPipeline&gt;</code></td><td>point list, <strong>no vertex buffers</strong> &mdash; position points from <code>@builtin(vertex_index)</code>, typically <code>textureLoad</code>ing a bound texture (scatter passes); same bind-group layout as render pipelines</td></tr>
-    <tr><td><code>rx.create_compute_pipeline(shader, entry, inputs) -&gt; Option&lt;ScriptComputePipeline&gt;</code></td><td><code>inputs</code> = 1&ndash;4 input textures at bindings <code>0..n</code>, write-only rgba8 storage output at binding <code>n</code> (one group)</td></tr>
-  </table>
+  <div class="api-list">
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.create_texture(<span class="api-params"><span class="api-param">w,</span> <span class="api-param">h</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptTexture&gt;</span></code>
+        <span class="api-description">rgba8 (sRGB), max dimension 8192; owned by the plugin, dropped with its state</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>w</code> <span class="api-type">i64</span></dt><dd>Width in pixels, 1..=8192.</dd></div>
+            <div><dt><code>h</code> <span class="api-type">i64</span></dt><dd>Height in pixels, 1..=8192.</dd></div>
+            <div class="api-result"><dt>returns <code>Option&lt;ScriptTexture&gt;</code></dt><dd>Some(texture) for a new RGBA8 texture; None with a message for invalid dimensions or an unavailable GPU.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.texture_pixels(<span class="api-params"><span class="api-param">tex</span></span>)<span class="api-return"> -&gt; Option&lt;Bytes&gt;</span></code>
+        <span class="api-description">readback, mirror of <code>upload</code>; forces a GPU sync &mdash; command-handler tool, not per-frame (see pitfalls)</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>tex</code> <span class="api-type">ScriptTexture</span></dt><dd>Texture to read back; pending commands must have been submitted to see their changes.</dd></div>
+            <div class="api-result"><dt>returns <code>Option&lt;Bytes&gt;</code></dt><dd>Some(bytes) with RGBA8 pixels in top-first row-major order; None if the GPU is unavailable or bytes cannot be allocated. The read waits for the GPU.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.create_shader(<span class="api-params"><span class="api-param">wgsl</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptShader&gt;</span></code>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>wgsl</code> <span class="api-type">String</span></dt><dd>Complete WGSL shader source, not a file path.</dd></div>
+            <div class="api-result"><dt>returns <code>Option&lt;ScriptShader&gt;</code></dt><dd>Some(shader) when compilation succeeds; None with a message for shader validation failure or an unavailable GPU.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.create_render_pipeline(<span class="api-params"><span class="api-param">shader,</span> <span class="api-param">vs,</span> <span class="api-param">fs,</span> <span class="api-param">textures</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptPipeline&gt;</span></code>
+        <span class="api-description">triangle list, sprite vertex layout, alpha blending onto rgba8; <code>textures</code> = 0&ndash;3 texture groups</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>shader</code> <span class="api-type">ScriptShader</span></dt><dd>Compiled WGSL shader from rx.create_shader().</dd></div>
+            <div><dt><code>vs</code> <span class="api-type">String</span></dt><dd>Name of the WGSL vertex entry point.</dd></div>
+            <div><dt><code>fs</code> <span class="api-type">String</span></dt><dd>Name of the WGSL fragment entry point.</dd></div>
+            <div><dt><code>textures</code> <span class="api-type">i64</span></dt><dd>Number of sampled-texture groups, 0..=3; group 0 is reserved for transform uniforms.</dd></div>
+            <div class="api-result"><dt>returns <code>Option&lt;ScriptPipeline&gt;</code></dt><dd>Some(pipeline) when valid; None with a message for an unavailable GPU, invalid group count, or pipeline validation failure.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.create_point_pipeline(<span class="api-params"><span class="api-param">shader,</span> <span class="api-param">vs,</span> <span class="api-param">fs,</span> <span class="api-param">textures</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptPipeline&gt;</span></code>
+        <span class="api-description">point list, <strong>no vertex buffers</strong> &mdash; position points from <code>@builtin(vertex_index)</code>, typically <code>textureLoad</code>ing a bound texture (scatter passes); same bind-group layout as render pipelines</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>shader</code> <span class="api-type">ScriptShader</span></dt><dd>Compiled WGSL shader from rx.create_shader().</dd></div>
+            <div><dt><code>vs</code> <span class="api-type">String</span></dt><dd>Name of the WGSL vertex entry point.</dd></div>
+            <div><dt><code>fs</code> <span class="api-type">String</span></dt><dd>Name of the WGSL fragment entry point.</dd></div>
+            <div><dt><code>textures</code> <span class="api-type">i64</span></dt><dd>Number of sampled-texture groups, 0..=3; group 0 is reserved for transform uniforms.</dd></div>
+            <div class="api-result"><dt>returns <code>Option&lt;ScriptPipeline&gt;</code></dt><dd>Some(pipeline) when valid; None with a message for an unavailable GPU, invalid group count, or pipeline validation failure.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.create_compute_pipeline(<span class="api-params"><span class="api-param">shader,</span> <span class="api-param">entry,</span> <span class="api-param">inputs</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptComputePipeline&gt;</span></code>
+        <span class="api-description"><code>inputs</code> = 1&ndash;4 input textures at bindings <code>0..n</code>, write-only rgba8 storage output at binding <code>n</code> (one group)</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>shader</code> <span class="api-type">ScriptShader</span></dt><dd>Compiled WGSL shader from rx.create_shader().</dd></div>
+            <div><dt><code>entry</code> <span class="api-type">String</span></dt><dd>Name of the WGSL compute entry point.</dd></div>
+            <div><dt><code>inputs</code> <span class="api-type">i64</span></dt><dd>Number of input textures, 1..=4. Inputs occupy bindings 0 through inputs - 1; storage output uses binding inputs.</dd></div>
+            <div class="api-result"><dt>returns <code>Option&lt;ScriptComputePipeline&gt;</code></dt><dd>Some(pipeline) when valid; None with a message for an unavailable GPU, invalid input count, or validation failure.</dd></div>
+          </dl>
+    </details>
+  </div>
 
-  <p>
-    <code>ScriptTexture</code> methods: <code>width()</code>, <code>height()</code>,
-    <code>upload(bytes) -&gt; bool</code> (exactly <code>w*h*4</code> row-major
-    bytes; the call <em>moves</em> the Bytes value), <code>fill(color)</code>.
-  </p>
+  <h3>texture methods</h3>
+
+  <p><code>texture</code> is a <code>ScriptTexture</code> returned by <code>rx.create_texture</code>.</p>
+
+  <div class="api-list">
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">texture.width()<span class="api-return"> -&gt; i64</span></code>
+        <span class="api-description">Read the texture width.</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt>parameters</dt><dd>None.</dd></div>
+            <div class="api-result"><dt>returns <code>i64</code></dt><dd>Texture width in pixels.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">texture.height()<span class="api-return"> -&gt; i64</span></code>
+        <span class="api-description">Read the texture height.</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt>parameters</dt><dd>None.</dd></div>
+            <div class="api-result"><dt>returns <code>i64</code></dt><dd>Texture height in pixels.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">texture.upload(<span class="api-params"><span class="api-param">bytes</span></span>)<span class="api-return"> -&gt; bool</span></code>
+        <span class="api-description">Replace the entire texture with pixel data.</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>bytes</code> <span class="api-type">Bytes</span></dt><dd>Exactly texture.width() * texture.height() * 4 RGBA8 bytes in top-first row-major order. The Bytes value is moved.</dd></div>
+            <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when the byte count matches and the upload is queued; false for a size mismatch, leaving the texture unchanged.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">texture.fill(<span class="api-params"><span class="api-param">color</span></span>)<span class="api-return"> -&gt; ()</span></code>
+        <span class="api-description">Fill the entire texture with one color.</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>color</code> <span class="api-type">Rgba8</span></dt><dd>RGBA color, for example rx::rgba(255, 128, 0, 255).</dd></div>
+            <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
+          </dl>
+    </details>
+  </div>
 
   <h3>bind groups &amp; vertices</h3>
 
@@ -256,18 +885,106 @@
     bindings are visible to both vertex and fragment stages.
   </p>
 
-  <table>
-    <tr><th>function</th><th>notes</th></tr>
-    <tr><td><code>rx.create_transform_bind_group(w, h, transform) -&gt; Option&lt;ScriptBindGroup&gt;</code></td><td>group 0: ortho for a <code>w</code>&times;<code>h</code> target composed with <code>transform</code>; params slot zeroed (WGSL that doesn't declare binding 1 is unaffected)</td></tr>
-    <tr><td><code>rx.create_transform_params_bind_group(w, h, transform, params) -&gt; Option&lt;ScriptBindGroup&gt;</code></td><td>adds user params (1&ndash;64 floats) at group 0 binding 1: <code>var&lt;uniform&gt; params: array&lt;vec4&lt;f32&gt;, N&gt;</code> where <strong><code>N = ceil(len/4)</code></strong> &mdash; the buffer is sized to the floats passed, <em>not</em> a fixed 64, so declare <code>N</code> to match or it's a validation error; packed in order, zero-padded to the vec4; an f32 holds 24 exact integer bits &mdash; pass 32-bit masks as two 16-bit halves</td></tr>
-    <tr><td><code>rx.create_texture_bind_group(texture) -&gt; Option&lt;ScriptBindGroup&gt;</code></td><td>texture + nearest sampler, for any texture group slot</td></tr>
-    <tr><td><code>encoder.view_bind_group(view_id) -&gt; Result&lt;ScriptBindGroup&gt;</code></td><td>shade-stage: the view's <strong>live</strong> layer texture as input &mdash; unrecorded paints included, unlike <code>view_pixels</code>; built per call, so resizes are tracked next frame; binding a view as input to a pass targeting it is a validation error (disables the plugin)</td></tr>
-    <tr><td><code>rx.create_compute_bind_group(inputs, output) -&gt; Option&lt;ScriptBindGroup&gt;</code></td><td>1&ndash;4 input textures + storage output; must match the pipeline's declared count; compute reads raw (no sRGB decode)</td></tr>
-    <tr><td><code>rx.create_sprite_vertices(texture, dst, color, opacity) -&gt; Option&lt;ScriptBuffer&gt;</code></td><td>one quad mapping the whole texture onto <code>dst</code> (target pixels); six vertices</td></tr>
-    <tr><td><code>rx.create_sprite_vertices_src(texture, src, dst) -&gt; Option&lt;ScriptBuffer&gt;</code></td><td>maps only <code>src</code> (texture pixels) onto <code>dst</code>; white, full opacity</td></tr>
-  </table>
+  <div class="api-list">
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.create_transform_bind_group(<span class="api-params"><span class="api-param">w,</span> <span class="api-param">h,</span> <span class="api-param">transform</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptBindGroup&gt;</span></code>
+        <span class="api-description">group 0: ortho for a <code>w</code>&times;<code>h</code> target composed with <code>transform</code>; params slot zeroed (WGSL that doesn't declare binding 1 is unaffected)</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>w</code> <span class="api-type">i64</span></dt><dd>Width in pixels; must be positive.</dd></div>
+            <div><dt><code>h</code> <span class="api-type">i64</span></dt><dd>Height in pixels; must be positive.</dd></div>
+            <div><dt><code>transform</code> <span class="api-type">Mat4</span></dt><dd>Model transform composed with the target-size orthographic projection, e.g. rx::mat4_identity().</dd></div>
+            <div class="api-result"><dt>returns <code>Option&lt;ScriptBindGroup&gt;</code></dt><dd>Some(group) for group 0 with transform uniforms and a zeroed vec4 parameter slot; None for an unavailable GPU or nonpositive target dimensions.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.create_transform_params_bind_group(<span class="api-params"><span class="api-param">w,</span> <span class="api-param">h,</span> <span class="api-param">transform,</span> <span class="api-param">params</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptBindGroup&gt;</span></code>
+        <span class="api-description">adds user params (1&ndash;64 floats) at group 0 binding 1: <code>var&lt;uniform&gt; params: array&lt;vec4&lt;f32&gt;, N&gt;</code> where <strong><code>N = ceil(len/4)</code></strong> &mdash; the buffer is sized to the floats passed, <em>not</em> a fixed 64, so declare <code>N</code> to match or it's a validation error; packed in order, zero-padded to the vec4; an f32 holds 24 exact integer bits &mdash; pass 32-bit masks as two 16-bit halves</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>w</code> <span class="api-type">i64</span></dt><dd>Width in pixels; must be positive.</dd></div>
+            <div><dt><code>h</code> <span class="api-type">i64</span></dt><dd>Height in pixels; must be positive.</dd></div>
+            <div><dt><code>transform</code> <span class="api-type">Mat4</span></dt><dd>Model transform composed with the target-size orthographic projection, e.g. rx::mat4_identity().</dd></div>
+            <div><dt><code>params</code> <span class="api-type">Vec&lt;f64&gt;</span></dt><dd>1–64 values, converted to f32 and zero-padded to a multiple of four. WGSL binding 1 must use array&lt;vec4&lt;f32&gt;, ceil(len / 4)&gt;.</dd></div>
+            <div class="api-result"><dt>returns <code>Option&lt;ScriptBindGroup&gt;</code></dt><dd>Some(group) for group 0; None for an unavailable GPU, nonpositive dimensions, or an invalid parameter count.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.create_texture_bind_group(<span class="api-params"><span class="api-param">texture</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptBindGroup&gt;</span></code>
+        <span class="api-description">texture + nearest sampler, for any texture group slot</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>texture</code> <span class="api-type">ScriptTexture</span></dt><dd>A texture created by rx.create_texture().</dd></div>
+            <div class="api-result"><dt>returns <code>Option&lt;ScriptBindGroup&gt;</code></dt><dd>Some(group) containing the texture and nearest sampler; None if the GPU is unavailable.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">encoder.view_bind_group(<span class="api-params"><span class="api-param">view_id</span></span>)<span class="api-return"> -&gt; Result&lt;ScriptBindGroup, String&gt;</span></code>
+        <span class="api-description">shade-stage: the view's <strong>live</strong> layer texture as input &mdash; unrecorded paints included, unlike <code>view_pixels</code>; built per call, so resizes are tracked next frame; binding a view as input to a pass targeting it is a validation error (disables the plugin)</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>view_id</code> <span class="api-type">i64</span></dt><dd>ID of the view whose current live GPU layer texture will be sampled.</dd></div>
+            <div class="api-result"><dt>returns <code>Result&lt;ScriptBindGroup, String&gt;</code></dt><dd>Ok(group) for the current frame; Err(message) for a missing view or unavailable GPU.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.create_compute_bind_group(<span class="api-params"><span class="api-param">inputs,</span> <span class="api-param">output</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptBindGroup&gt;</span></code>
+        <span class="api-description">1&ndash;4 input textures + storage output; must match the pipeline's declared count; compute reads raw (no sRGB decode)</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>inputs</code> <span class="api-type">Vec&lt;ScriptTexture&gt;</span></dt><dd>1–4 input textures, in binding order, matching the pipeline input count. Reads use raw RGBA8 values.</dd></div>
+            <div><dt><code>output</code> <span class="api-type">ScriptTexture</span></dt><dd>Storage texture written by the compute shader at the binding after the inputs.</dd></div>
+            <div class="api-result"><dt>returns <code>Option&lt;ScriptBindGroup&gt;</code></dt><dd>Some(group) when valid; None with a message for an unavailable GPU, invalid input count/type, or bind-group validation failure.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.create_sprite_vertices(<span class="api-params"><span class="api-param">texture,</span> <span class="api-param">dst,</span> <span class="api-param">color,</span> <span class="api-param">opacity</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptBuffer&gt;</span></code>
+        <span class="api-description">one quad mapping the whole texture onto <code>dst</code> (target pixels); six vertices</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>texture</code> <span class="api-type">ScriptTexture</span></dt><dd>A texture created by rx.create_texture().</dd></div>
+            <div><dt><code>dst</code> <span class="api-type">Rect</span></dt><dd>Destination rectangle in target pixels (y-up).</dd></div>
+            <div><dt><code>color</code> <span class="api-type">Rgba8</span></dt><dd>Vertex tint; use opaque white to preserve the texture colors.</dd></div>
+            <div><dt><code>opacity</code> <span class="api-type">f64</span></dt><dd>Opacity multiplier, normally 0.0 (transparent) through 1.0 (opaque).</dd></div>
+            <div class="api-result"><dt>returns <code>Option&lt;ScriptBuffer&gt;</code></dt><dd>Some(buffer) containing six vertices for the quad; None if the GPU is unavailable.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx.create_sprite_vertices_src(<span class="api-params"><span class="api-param">texture,</span> <span class="api-param">src,</span> <span class="api-param">dst</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptBuffer&gt;</span></code>
+        <span class="api-description">maps only <code>src</code> (texture pixels) onto <code>dst</code>; white, full opacity</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>texture</code> <span class="api-type">ScriptTexture</span></dt><dd>A texture created by rx.create_texture().</dd></div>
+            <div><dt><code>src</code> <span class="api-type">Rect</span></dt><dd>Source rectangle in texture pixels (y-up), before mapping to dst.</dd></div>
+            <div><dt><code>dst</code> <span class="api-type">Rect</span></dt><dd>Destination rectangle in target pixels (y-up).</dd></div>
+            <div class="api-result"><dt>returns <code>Option&lt;ScriptBuffer&gt;</code></dt><dd>Some(buffer) containing six vertices with white tint and full opacity; None if the GPU is unavailable.</dd></div>
+          </dl>
+    </details>
+  </div>
 
-  <p><code>ScriptBuffer</code>: <code>count() -&gt; i64</code> (vertex count, for <code>draw</code>).</p>
+  <h3>buffer methods</h3>
+
+  <p><code>buffer</code> is a <code>ScriptBuffer</code> returned by a sprite-vertex constructor.</p>
+
+  <div class="api-list">
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">buffer.count()<span class="api-return"> -&gt; i64</span></code>
+        <span class="api-description">Read the number of vertices in a buffer.</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt>parameters</dt><dd>None.</dd></div>
+            <div class="api-result"><dt>returns <code>i64</code></dt><dd>Number of vertices in this buffer; pass it to pass.draw(vertices, instances).</dd></div>
+          </dl>
+    </details>
+  </div>
 
   <h3>passes (the <code>shade</code> encoder)</h3>
 
@@ -279,22 +996,163 @@
     transparent).
   </p>
 
-  <table>
-    <tr><th>function</th><th>target</th></tr>
-    <tr><td><code>encoder.begin_render_pass(label, texture, load)</code></td><td>a script texture</td></tr>
-    <tr><td><code>encoder.begin_view_pass(label, view_id, load)</code></td><td>a view's layer &mdash; follow with <code>rx.touch_view(id)</code> so the edit is recorded (and undoable)</td></tr>
-    <tr><td><code>encoder.begin_staging_pass(label, view_id, load)</code></td><td>the view's staging overlay: composited above the view, cleared every frame &mdash; for uncommitted previews</td></tr>
-    <tr><td><code>encoder.begin_compute_pass(label)</code></td><td></td></tr>
-  </table>
+  <div class="api-list">
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">encoder.begin_render_pass(<span class="api-params"><span class="api-param">label,</span> <span class="api-param">texture,</span> <span class="api-param">load</span></span>)<span class="api-return"> -&gt; Result&lt;ScriptPass, String&gt;</span></code>
+        <span class="api-description">a script texture</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>label</code> <span class="api-type">String</span></dt><dd>Debug label for the GPU pass.</dd></div>
+            <div><dt><code>texture</code> <span class="api-type">ScriptTexture</span></dt><dd>A texture created by rx.create_texture().</dd></div>
+            <div><dt><code>load</code> <span class="api-type">String</span></dt><dd>&quot;load&quot; preserves existing pixels; &quot;clear&quot; clears the target to transparent.</dd></div>
+            <div class="api-result"><dt>returns <code>Result&lt;ScriptPass, String&gt;</code></dt><dd>Ok(pass) for the texture; Err(message) for an unknown load operation or expired encoder.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">encoder.begin_view_pass(<span class="api-params"><span class="api-param">label,</span> <span class="api-param">view_id,</span> <span class="api-param">load</span></span>)<span class="api-return"> -&gt; Result&lt;ScriptPass, String&gt;</span></code>
+        <span class="api-description">a view's layer &mdash; follow with <code>rx.touch_view(id)</code> so the edit is recorded (and undoable)</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>label</code> <span class="api-type">String</span></dt><dd>Debug label for the GPU pass.</dd></div>
+            <div><dt><code>view_id</code> <span class="api-type">i64</span></dt><dd>ID of the view to draw into.</dd></div>
+            <div><dt><code>load</code> <span class="api-type">String</span></dt><dd>&quot;load&quot; preserves existing pixels; &quot;clear&quot; clears the target to transparent.</dd></div>
+            <div class="api-result"><dt>returns <code>Result&lt;ScriptPass, String&gt;</code></dt><dd>Ok(pass) for the target; Err(message) for a missing view, unknown load operation, or expired encoder.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">encoder.begin_staging_pass(<span class="api-params"><span class="api-param">label,</span> <span class="api-param">view_id,</span> <span class="api-param">load</span></span>)<span class="api-return"> -&gt; Result&lt;ScriptPass, String&gt;</span></code>
+        <span class="api-description">the view's staging overlay: composited above the view, cleared every frame &mdash; for uncommitted previews</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>label</code> <span class="api-type">String</span></dt><dd>Debug label for the GPU pass.</dd></div>
+            <div><dt><code>view_id</code> <span class="api-type">i64</span></dt><dd>ID of the view to draw into.</dd></div>
+            <div><dt><code>load</code> <span class="api-type">String</span></dt><dd>&quot;load&quot; preserves existing pixels; &quot;clear&quot; clears the target to transparent.</dd></div>
+            <div class="api-result"><dt>returns <code>Result&lt;ScriptPass, String&gt;</code></dt><dd>Ok(pass) for the target; Err(message) for a missing view, unknown load operation, or expired encoder.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">encoder.begin_compute_pass(<span class="api-params"><span class="api-param">label</span></span>)<span class="api-return"> -&gt; Result&lt;ScriptComputePass, String&gt;</span></code>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>label</code> <span class="api-type">String</span></dt><dd>Debug label for the GPU pass.</dd></div>
+            <div class="api-result"><dt>returns <code>Result&lt;ScriptComputePass, String&gt;</code></dt><dd>Ok(pass), ending any earlier open pass; Err(message) if the encoder has expired.</dd></div>
+          </dl>
+    </details>
+  </div>
 
-  <p>
-    <code>ScriptPass</code>: <code>set_pipeline(p)</code>,
-    <code>set_bind_group(i, g)</code>, <code>set_vertex_buffer(slot, b)</code>,
-    <code>draw(vertices, instances)</code>, <code>end()</code>.<br>
-    <code>ScriptComputePass</code>: <code>set_pipeline(p)</code>,
-    <code>set_bind_group(i, g)</code>, <code>dispatch(x, y, z)</code>,
-    <code>end()</code>.
-  </p>
+  <h3>render-pass methods</h3>
+
+  <p><code>pass</code> is a <code>ScriptPass</code>. Use it during the hook that created or received it. Beginning another encoder pass or returning from the hook ends it.</p>
+
+  <div class="api-list">
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">pass.set_pipeline(<span class="api-params"><span class="api-param">p</span></span>)<span class="api-return"> -&gt; Result&lt;(), String&gt;</span></code>
+        <span class="api-description">Select the pipeline.</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>p</code> <span class="api-type">ScriptPipeline</span></dt><dd>Pipeline to use for subsequent drawing or dispatch.</dd></div>
+            <div class="api-result"><dt>returns <code>Result&lt;(), String&gt;</code></dt><dd>Ok(()) when recorded; Err(message) if the pass has ended. Invalid GPU state can also cause a validation error at hook completion.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">pass.set_bind_group(<span class="api-params"><span class="api-param">i,</span> <span class="api-param">g</span></span>)<span class="api-return"> -&gt; Result&lt;(), String&gt;</span></code>
+        <span class="api-description">Bind resources for the pipeline.</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>i</code> <span class="api-type">i64</span></dt><dd>Nonnegative bind-group index matching the pipeline layout; group 0 is transforms, groups 1–3 are textures.</dd></div>
+            <div><dt><code>g</code> <span class="api-type">ScriptBindGroup</span></dt><dd>Bind group with a layout compatible with the pipeline at index i.</dd></div>
+            <div class="api-result"><dt>returns <code>Result&lt;(), String&gt;</code></dt><dd>Ok(()) when recorded; Err(message) if the pass has ended. Invalid GPU state can also cause a validation error at hook completion.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">pass.end()<span class="api-return"> -&gt; ()</span></code>
+        <span class="api-description">End the pass; calling end again is harmless.</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt>parameters</dt><dd>None.</dd></div>
+            <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">pass.set_vertex_buffer(<span class="api-params"><span class="api-param">slot,</span> <span class="api-param">b</span></span>)<span class="api-return"> -&gt; Result&lt;(), String&gt;</span></code>
+        <span class="api-description">Bind a vertex buffer.</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>slot</code> <span class="api-type">i64</span></dt><dd>Nonnegative vertex-buffer slot; sprite pipelines use slot 0.</dd></div>
+            <div><dt><code>b</code> <span class="api-type">ScriptBuffer</span></dt><dd>Vertex buffer to bind in full.</dd></div>
+            <div class="api-result"><dt>returns <code>Result&lt;(), String&gt;</code></dt><dd>Ok(()) when recorded; Err(message) if the pass has ended. The buffer must match the pipeline vertex layout.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">pass.draw(<span class="api-params"><span class="api-param">vertices,</span> <span class="api-param">instances</span></span>)<span class="api-return"> -&gt; Result&lt;(), String&gt;</span></code>
+        <span class="api-description">Record a draw call.</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>vertices</code> <span class="api-type">i64</span></dt><dd>Nonnegative number of vertices, starting at 0; use buffer.count() for a whole sprite buffer.</dd></div>
+            <div><dt><code>instances</code> <span class="api-type">i64</span></dt><dd>Nonnegative number of instances, starting at 0; normally 1.</dd></div>
+            <div class="api-result"><dt>returns <code>Result&lt;(), String&gt;</code></dt><dd>Ok(()) when the draw is recorded; Err(message) if the pass has ended. Pipeline, bind groups, and any required vertex buffers must already be set.</dd></div>
+          </dl>
+    </details>
+  </div>
+
+  <h3>compute-pass methods</h3>
+
+  <p><code>compute_pass</code> is a <code>ScriptComputePass</code>. Use it during the hook that created or received it. Beginning another encoder pass or returning from the hook ends it.</p>
+
+  <div class="api-list">
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">compute_pass.set_pipeline(<span class="api-params"><span class="api-param">p</span></span>)<span class="api-return"> -&gt; Result&lt;(), String&gt;</span></code>
+        <span class="api-description">Select the pipeline.</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>p</code> <span class="api-type">ScriptComputePipeline</span></dt><dd>Pipeline to use for subsequent drawing or dispatch.</dd></div>
+            <div class="api-result"><dt>returns <code>Result&lt;(), String&gt;</code></dt><dd>Ok(()) when recorded; Err(message) if the pass has ended. Invalid GPU state can also cause a validation error at hook completion.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">compute_pass.set_bind_group(<span class="api-params"><span class="api-param">i,</span> <span class="api-param">g</span></span>)<span class="api-return"> -&gt; Result&lt;(), String&gt;</span></code>
+        <span class="api-description">Bind resources for the pipeline.</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>i</code> <span class="api-type">i64</span></dt><dd>Nonnegative bind-group index matching the pipeline layout; compute uses group 0.</dd></div>
+            <div><dt><code>g</code> <span class="api-type">ScriptBindGroup</span></dt><dd>Bind group with a layout compatible with the pipeline at index i.</dd></div>
+            <div class="api-result"><dt>returns <code>Result&lt;(), String&gt;</code></dt><dd>Ok(()) when recorded; Err(message) if the pass has ended. Invalid GPU state can also cause a validation error at hook completion.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">compute_pass.end()<span class="api-return"> -&gt; ()</span></code>
+        <span class="api-description">End the pass; calling end again is harmless.</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt>parameters</dt><dd>None.</dd></div>
+            <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">compute_pass.dispatch(<span class="api-params"><span class="api-param">x,</span> <span class="api-param">y,</span> <span class="api-param">z</span></span>)<span class="api-return"> -&gt; Result&lt;(), String&gt;</span></code>
+        <span class="api-description">Record a compute dispatch.</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>x</code> <span class="api-type">i64</span></dt><dd>Nonnegative number of workgroups along x, not the number of invocations; each group uses the shader workgroup size.</dd></div>
+            <div><dt><code>y</code> <span class="api-type">i64</span></dt><dd>Nonnegative number of workgroups along y, not the number of invocations; each group uses the shader workgroup size.</dd></div>
+            <div><dt><code>z</code> <span class="api-type">i64</span></dt><dd>Nonnegative number of workgroups along z, not the number of invocations; each group uses the shader workgroup size.</dd></div>
+            <div class="api-result"><dt>returns <code>Result&lt;(), String&gt;</code></dt><dd>Ok(()) when the dispatch is recorded; Err(message) if the pass has ended. Pipeline and bind groups must already be set.</dd></div>
+          </dl>
+    </details>
+  </div>
 
   <p>
     The <code>render(state, rx, pass)</code> hook receives a
@@ -305,15 +1163,116 @@
 
   <h2 id="types">types &amp; constructors (free functions, <code>rx::</code>)</h2>
 
-  <table>
-    <tr><th>function</th><th>notes</th></tr>
-    <tr><td><code>rx::rgb(r, g, b) -&gt; Rgba8</code></td><td>alpha 255; fields <code>.r .g .b .a</code> readable</td></tr>
-    <tr><td><code>rx::rgba(r, g, b, a) -&gt; Rgba8</code></td><td>explicit alpha; blends in <code>draw_line</code>/<code>draw_text</code> (e.g. translucent connection wires)</td></tr>
-    <tr><td><code>rx::rect(x1, y1, x2, y2) -&gt; Rect</code></td><td>fields <code>.x1 .y1 .x2 .y2</code></td></tr>
-    <tr><td><code>rx::mat4_identity()</code> / <code>mat4_translation(x, y)</code> / <code>mat4_scale(sx, sy)</code> / <code>mat4_rotation_z(theta)</code></td><td></td></tr>
-    <tr><td><code>rx::mat4_mul(a, b)</code> / <code>rx::mat4_transform_point(m, x, y)</code></td><td></td></tr>
-    <tr><td><code>rx::atan2(y, x)</code></td><td>radians</td></tr>
-  </table>
+  <div class="api-list">
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx::rgb(<span class="api-params"><span class="api-param">r,</span> <span class="api-param">g,</span> <span class="api-param">b</span></span>)<span class="api-return"> -&gt; Rgba8</span></code>
+        <span class="api-description">alpha 255; fields <code>.r .g .b .a</code> readable</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>r</code> <span class="api-type">i64</span></dt><dd>Red component, 0..=255. Values are cast to 8 bits, not clamped.</dd></div>
+            <div><dt><code>g</code> <span class="api-type">i64</span></dt><dd>Green component, 0..=255. Values are cast to 8 bits, not clamped.</dd></div>
+            <div><dt><code>b</code> <span class="api-type">i64</span></dt><dd>Blue component, 0..=255. Values are cast to 8 bits, not clamped.</dd></div>
+            <div class="api-result"><dt>returns <code>Rgba8</code></dt><dd>A color with the supplied components and alpha 255.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx::rgba(<span class="api-params"><span class="api-param">r,</span> <span class="api-param">g,</span> <span class="api-param">b,</span> <span class="api-param">a</span></span>)<span class="api-return"> -&gt; Rgba8</span></code>
+        <span class="api-description">explicit alpha; blends in <code>draw_line</code>/<code>draw_text</code> (e.g. translucent connection wires)</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>r</code> <span class="api-type">i64</span></dt><dd>Red component, 0..=255. Values are cast to 8 bits, not clamped.</dd></div>
+            <div><dt><code>g</code> <span class="api-type">i64</span></dt><dd>Green component, 0..=255. Values are cast to 8 bits, not clamped.</dd></div>
+            <div><dt><code>b</code> <span class="api-type">i64</span></dt><dd>Blue component, 0..=255. Values are cast to 8 bits, not clamped.</dd></div>
+            <div><dt><code>a</code> <span class="api-type">i64</span></dt><dd>Alpha component, 0..=255. Values are cast to 8 bits, not clamped.</dd></div>
+            <div class="api-result"><dt>returns <code>Rgba8</code></dt><dd>A color with the supplied components. Alpha 0 is transparent and 255 is opaque.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx::rect(<span class="api-params"><span class="api-param">x1,</span> <span class="api-param">y1,</span> <span class="api-param">x2,</span> <span class="api-param">y2</span></span>)<span class="api-return"> -&gt; Rect</span></code>
+        <span class="api-description">fields <code>.x1 .y1 .x2 .y2</code></span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>x1</code> <span class="api-type">f64</span></dt><dd>First corner x coordinate.</dd></div>
+            <div><dt><code>y1</code> <span class="api-type">f64</span></dt><dd>First corner y coordinate.</dd></div>
+            <div><dt><code>x2</code> <span class="api-type">f64</span></dt><dd>Second corner x coordinate.</dd></div>
+            <div><dt><code>y2</code> <span class="api-type">f64</span></dt><dd>Second corner y coordinate.</dd></div>
+            <div class="api-result"><dt>returns <code>Rect</code></dt><dd>A rectangle with these exact corners; construction does not normalize or clamp them. Use the coordinate space required by the receiving function.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx::mat4_identity()<span class="api-return"> -&gt; Mat4</span></code>
+      </summary>
+      <dl class="api-fields">
+            <div><dt>parameters</dt><dd>None.</dd></div>
+            <div class="api-result"><dt>returns <code>Mat4</code></dt><dd>The identity transform; points are unchanged.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx::mat4_translation(<span class="api-params"><span class="api-param">x,</span> <span class="api-param">y</span></span>)<span class="api-return"> -&gt; Mat4</span></code>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>x</code> <span class="api-type">f64</span></dt><dd>Translation along x.</dd></div>
+            <div><dt><code>y</code> <span class="api-type">f64</span></dt><dd>Translation along y.</dd></div>
+            <div class="api-result"><dt>returns <code>Mat4</code></dt><dd>A translation matrix. Values are stored as f32.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx::mat4_scale(<span class="api-params"><span class="api-param">sx,</span> <span class="api-param">sy</span></span>)<span class="api-return"> -&gt; Mat4</span></code>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>sx</code> <span class="api-type">f64</span></dt><dd>Scale factor along x; 1.0 preserves size, negative values reflect.</dd></div>
+            <div><dt><code>sy</code> <span class="api-type">f64</span></dt><dd>Scale factor along y; 1.0 preserves size, negative values reflect.</dd></div>
+            <div class="api-result"><dt>returns <code>Mat4</code></dt><dd>A scale matrix. Values are stored as f32.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx::mat4_rotation_z(<span class="api-params"><span class="api-param">theta</span></span>)<span class="api-return"> -&gt; Mat4</span></code>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>theta</code> <span class="api-type">f64</span></dt><dd>Rotation angle in radians around the Z axis.</dd></div>
+            <div class="api-result"><dt>returns <code>Mat4</code></dt><dd>A rotation matrix. With y-up coordinates, positive angles rotate counterclockwise.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx::mat4_mul(<span class="api-params"><span class="api-param">a,</span> <span class="api-param">b</span></span>)<span class="api-return"> -&gt; Mat4</span></code>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>a</code> <span class="api-type">Mat4</span></dt><dd>Left-hand matrix.</dd></div>
+            <div><dt><code>b</code> <span class="api-type">Mat4</span></dt><dd>Right-hand matrix.</dd></div>
+            <div class="api-result"><dt>returns <code>Mat4</code></dt><dd>The product a * b; when applied to a point, b acts first, then a.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature api-signature-mobile">rx::mat4_transform_point(<span class="api-params"><span class="api-param">m,</span> <span class="api-param">x,</span> <span class="api-param">y</span></span>)<span class="api-return"> -&gt; (f64, f64)</span></code>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>m</code> <span class="api-type">Mat4</span></dt><dd>Matrix applied to the point.</dd></div>
+            <div><dt><code>x</code> <span class="api-type">f64</span></dt><dd>Point x coordinate.</dd></div>
+            <div><dt><code>y</code> <span class="api-type">f64</span></dt><dd>Point y coordinate.</dd></div>
+            <div class="api-result"><dt>returns <code>(f64, f64)</code></dt><dd>The transformed (x, y). Calculations use the matrix’s f32 precision.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry">
+      <summary>
+        <code class="api-signature">rx::atan2(<span class="api-params"><span class="api-param">y,</span> <span class="api-param">x</span></span>)<span class="api-return"> -&gt; f64</span></code>
+        <span class="api-description">radians</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>y</code> <span class="api-type">f64</span></dt><dd>Vertical component of the vector.</dd></div>
+            <div><dt><code>x</code> <span class="api-type">f64</span></dt><dd>Horizontal component of the vector.</dd></div>
+            <div class="api-result"><dt>returns <code>f64</code></dt><dd>The vector angle in radians, in the range -π to π, with the quadrant determined by both components.</dd></div>
+          </dl>
+    </details>
+  </div>
 
   <h2 id="pitfalls">conventions &amp; pitfalls</h2>
 
