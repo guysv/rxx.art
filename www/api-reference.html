@@ -12,10 +12,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=reference-3">
-  <link rel="stylesheet" href="api-reference.css?v=17">
-  <script src="api-reference.js?v=5" defer></script>
+  <link rel="stylesheet" href="api-reference.css?v=19">
+  <script src="api-reference.js?v=6" defer></script>
 </head>
-<body class="api-reference">
+<body id="top" class="api-reference">
 
   <p class="logo">
     <a href="/"><img src="rxx.png" alt="rxx"></a>
@@ -33,15 +33,176 @@
     <a href="plugins.html">plugins</a>
     <a href="https://github.com/guysv/rxx">source<svg class="gh" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg></a>
   </p>
-  <nav class="nav nav-sections nav-toc" aria-label="API contents">
-    <a href="#plugins">plugins</a>
-    <a href="#hooks">hooks</a>
-    <a href="#session">session</a>
-    <a href="#views">views</a>
-    <a href="#commands">commands</a>
-    <a href="#gpu">gpu</a>
-    <a href="#types">types</a>
-    <a href="#pitfalls">pitfalls</a>
+  <nav class="nav nav-sections nav-toc api-toc" aria-label="API contents">
+    <ul>
+      <li class="api-toc-branch"><a href="#plugins">plugins</a></li>
+      <li class="api-toc-branch"><a href="#hooks">hooks</a>
+        <ul>
+          <li class="api-toc-api"><a href="#init">init</a></li>
+          <li class="api-toc-api"><a href="#unload">unload</a></li>
+          <li class="api-toc-api"><a href="#update">update</a></li>
+          <li class="api-toc-api"><a href="#switch_mode">switch_mode</a></li>
+          <li class="api-toc-api"><a href="#cursor_moved">cursor_moved</a></li>
+          <li class="api-toc-api"><a href="#mouse_input">mouse_input</a></li>
+          <li class="api-toc-api"><a href="#view_added">view_added</a></li>
+          <li class="api-toc-api"><a href="#view_removed">view_removed</a></li>
+          <li class="api-toc-api"><a href="#shade">shade</a></li>
+          <li class="api-toc-api"><a href="#render">render</a></li>
+          <li class="api-toc-api"><a href="#draw">draw</a></li>
+        </ul>
+      </li>
+      <li class="api-toc-branch"><a href="#session">session</a>
+        <ul>
+          <li class="api-toc-api"><a href="#rx-mode">rx.<wbr>mode</a></li>
+          <li class="api-toc-api"><a href="#rx-prev_mode">rx.<wbr>prev_mode</a></li>
+          <li class="api-toc-api"><a href="#rx-switch_mode">rx.<wbr>switch_mode</a></li>
+          <li class="api-toc-api"><a href="#rx-message">rx.<wbr>message</a></li>
+          <li class="api-toc-api"><a href="#rx-fg">rx.<wbr>fg</a></li>
+          <li class="api-toc-api"><a href="#rx-bg">rx.<wbr>bg</a></li>
+          <li class="api-toc-api"><a href="#rx-set_fg">rx.<wbr>set_fg</a></li>
+          <li class="api-toc-branch"><a href="#coordinates-screen">coordinates &amp; screen</a>
+            <ul>
+              <li class="api-toc-api"><a href="#rx-offset">rx.<wbr>offset</a></li>
+              <li class="api-toc-api"><a href="#rx-screen_size">rx.<wbr>screen_size</a></li>
+              <li class="api-toc-api"><a href="#rx-cursor">rx.<wbr>cursor</a></li>
+              <li class="api-toc-api"><a href="#rx-session_coords">rx.<wbr>session_coords</a></li>
+              <li class="api-toc-api"><a href="#rx-active_view_coords">rx.<wbr>active_view_coords</a></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li class="api-toc-branch"><a href="#views">views</a>
+        <ul>
+          <li class="api-toc-api"><a href="#rx-active_view_id">rx.<wbr>active_view_id</a></li>
+          <li class="api-toc-api"><a href="#rx-views">rx.<wbr>views</a></li>
+          <li class="api-toc-api"><a href="#rx-view_pixels">rx.<wbr>view_pixels</a></li>
+          <li class="api-toc-api"><a href="#rx-view_layer_pixels">rx.<wbr>view_layer_pixels</a></li>
+          <li class="api-toc-api"><a href="#rx-layer_visibility">rx.<wbr>layer_visibility</a></li>
+          <li class="api-toc-api"><a href="#rx-set_animation_frame">rx.<wbr>set_animation_frame</a></li>
+          <li class="api-toc-api"><a href="#rx-set_animation_sequence">rx.<wbr>set_animation_sequence</a></li>
+          <li class="api-toc-api"><a href="#rx-animation_sequence">rx.<wbr>animation_sequence</a></li>
+          <li class="api-toc-api"><a href="#rx-clear_animation_sequence">rx.<wbr>clear_animation_sequence</a></li>
+          <li class="api-toc-api"><a href="#rx-set_animation_preview_visible">rx.<wbr>set_animation_preview_visible</a></li>
+          <li class="api-toc-api"><a href="#rx-touch_view">rx.<wbr>touch_view</a></li>
+          <li class="api-toc-api"><a href="#rx-clear_view_rect">rx.<wbr>clear_view_rect</a></li>
+          <li class="api-toc-api"><a href="#rx-damage_view">rx.<wbr>damage_view</a></li>
+          <li class="api-toc-branch"><a href="#selection">selection</a>
+            <ul>
+              <li class="api-toc-api"><a href="#rx-selection">rx.<wbr>selection</a></li>
+              <li class="api-toc-api"><a href="#rx-set_selection">rx.<wbr>set_selection</a></li>
+              <li class="api-toc-api"><a href="#rx-clear_selection">rx.<wbr>clear_selection</a></li>
+            </ul>
+          </li>
+          <li class="api-toc-branch"><a href="#settings">settings</a>
+            <ul>
+              <li class="api-toc-api"><a href="#rx-setting">rx.<wbr>setting</a></li>
+              <li class="api-toc-api"><a href="#rx-set_setting">rx.<wbr>set_setting</a></li>
+              <li class="api-toc-api"><a href="#rx-declare_setting">rx.<wbr>declare_setting</a></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li class="api-toc-branch"><a href="#commands">commands</a>
+        <ul>
+          <li class="api-toc-api"><a href="#rx-register_command">rx.<wbr>register_command</a></li>
+          <li class="api-toc-api"><a href="#rx-register_command_repeating">rx.<wbr>register_command_repeating</a></li>
+          <li class="api-toc-api"><a href="#rx-bind">rx.<wbr>bind</a></li>
+          <li class="api-toc-api"><a href="#rx-run_builtin">rx.<wbr>run_builtin</a></li>
+          <li class="api-toc-branch"><a href="#meta-plugins">meta plugins</a>
+            <ul>
+              <li class="api-toc-api"><a href="#rx-export">rx.<wbr>export</a></li>
+              <li class="api-toc-api"><a href="#rx-call_plugin">rx.<wbr>call_plugin</a></li>
+            </ul>
+          </li>
+          <li class="api-toc-branch"><a href="#ui-drawing">UI drawing (the draw hook only)</a>
+            <ul>
+              <li class="api-toc-api"><a href="#rx-draw_text">rx.<wbr>draw_text</a></li>
+              <li class="api-toc-api"><a href="#rx-draw_line">rx.<wbr>draw_line</a></li>
+            </ul>
+          </li>
+          <li class="api-toc-branch"><a href="#files-output">files &amp; output</a>
+            <ul>
+              <li class="api-toc-api"><a href="#rx-read_file">rx.<wbr>read_file</a></li>
+              <li class="api-toc-api"><a href="#rx-read_png">rx.<wbr>read_png</a></li>
+              <li class="api-toc-api"><a href="#rx-write_png">rx.<wbr>write_png</a></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li class="api-toc-branch"><a href="#gpu">gpu</a>
+        <ul>
+          <li class="api-toc-api"><a href="#rx-create_texture">rx.<wbr>create_texture</a></li>
+          <li class="api-toc-api"><a href="#rx-texture_pixels">rx.<wbr>texture_pixels</a></li>
+          <li class="api-toc-api"><a href="#rx-create_shader">rx.<wbr>create_shader</a></li>
+          <li class="api-toc-api"><a href="#rx-create_render_pipeline">rx.<wbr>create_render_pipeline</a></li>
+          <li class="api-toc-api"><a href="#rx-create_point_pipeline">rx.<wbr>create_point_pipeline</a></li>
+          <li class="api-toc-api"><a href="#rx-create_compute_pipeline">rx.<wbr>create_compute_pipeline</a></li>
+          <li class="api-toc-branch"><a href="#texture-methods">texture methods</a>
+            <ul>
+              <li class="api-toc-api"><a href="#texture-width">texture.<wbr>width</a></li>
+              <li class="api-toc-api"><a href="#texture-height">texture.<wbr>height</a></li>
+              <li class="api-toc-api"><a href="#texture-upload">texture.<wbr>upload</a></li>
+              <li class="api-toc-api"><a href="#texture-fill">texture.<wbr>fill</a></li>
+            </ul>
+          </li>
+          <li class="api-toc-branch"><a href="#bind-groups-vertices">bind groups &amp; vertices</a>
+            <ul>
+              <li class="api-toc-api"><a href="#rx-create_transform_bind_group">rx.<wbr>create_transform_bind_group</a></li>
+              <li class="api-toc-api"><a href="#rx-create_transform_params_bind_group">rx.<wbr>create_transform_params_bind_group</a></li>
+              <li class="api-toc-api"><a href="#rx-create_texture_bind_group">rx.<wbr>create_texture_bind_group</a></li>
+              <li class="api-toc-api"><a href="#encoder-view_bind_group">encoder.<wbr>view_bind_group</a></li>
+              <li class="api-toc-api"><a href="#rx-create_compute_bind_group">rx.<wbr>create_compute_bind_group</a></li>
+              <li class="api-toc-api"><a href="#rx-create_sprite_vertices">rx.<wbr>create_sprite_vertices</a></li>
+            </ul>
+          </li>
+          <li class="api-toc-branch"><a href="#buffer-methods">buffer methods</a>
+            <ul>
+              <li class="api-toc-api"><a href="#buffer-count">buffer.<wbr>count</a></li>
+            </ul>
+          </li>
+          <li class="api-toc-branch"><a href="#passes">passes (the shade encoder)</a>
+            <ul>
+              <li class="api-toc-api"><a href="#encoder-begin_render_pass">encoder.<wbr>begin_render_pass</a></li>
+              <li class="api-toc-api"><a href="#encoder-begin_view_pass">encoder.<wbr>begin_view_pass</a></li>
+              <li class="api-toc-api"><a href="#encoder-begin_staging_pass">encoder.<wbr>begin_staging_pass</a></li>
+              <li class="api-toc-api"><a href="#encoder-begin_compute_pass">encoder.<wbr>begin_compute_pass</a></li>
+            </ul>
+          </li>
+          <li class="api-toc-branch"><a href="#render-pass-methods">render-pass methods</a>
+            <ul>
+              <li class="api-toc-api"><a href="#pass-set_pipeline">pass.<wbr>set_pipeline</a></li>
+              <li class="api-toc-api"><a href="#pass-set_bind_group">pass.<wbr>set_bind_group</a></li>
+              <li class="api-toc-api"><a href="#pass-end">pass.<wbr>end</a></li>
+              <li class="api-toc-api"><a href="#pass-set_vertex_buffer">pass.<wbr>set_vertex_buffer</a></li>
+              <li class="api-toc-api"><a href="#pass-draw">pass.<wbr>draw</a></li>
+            </ul>
+          </li>
+          <li class="api-toc-branch"><a href="#compute-pass-methods">compute-pass methods</a>
+            <ul>
+              <li class="api-toc-api"><a href="#compute_pass-set_pipeline">compute_pass.<wbr>set_pipeline</a></li>
+              <li class="api-toc-api"><a href="#compute_pass-set_bind_group">compute_pass.<wbr>set_bind_group</a></li>
+              <li class="api-toc-api"><a href="#compute_pass-end">compute_pass.<wbr>end</a></li>
+              <li class="api-toc-api"><a href="#compute_pass-dispatch">compute_pass.<wbr>dispatch</a></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li class="api-toc-branch"><a href="#types">types</a>
+        <ul>
+          <li class="api-toc-api"><a href="#rx-rgb">rx::<wbr>rgb</a></li>
+          <li class="api-toc-api"><a href="#rx-rgba">rx::<wbr>rgba</a></li>
+          <li class="api-toc-api"><a href="#rx-rect">rx::<wbr>rect</a></li>
+          <li class="api-toc-api"><a href="#rx-mat4_identity">rx::<wbr>mat4_identity</a></li>
+          <li class="api-toc-api"><a href="#rx-mat4_translation">rx::<wbr>mat4_translation</a></li>
+          <li class="api-toc-api"><a href="#rx-mat4_scale">rx::<wbr>mat4_scale</a></li>
+          <li class="api-toc-api"><a href="#rx-mat4_rotation_z">rx::<wbr>mat4_rotation_z</a></li>
+          <li class="api-toc-api"><a href="#rx-mat4_mul">rx::<wbr>mat4_mul</a></li>
+          <li class="api-toc-api"><a href="#rx-mat4_transform_point">rx::<wbr>mat4_transform_point</a></li>
+          <li class="api-toc-api"><a href="#rx-atan2">rx::<wbr>atan2</a></li>
+        </ul>
+      </li>
+      <li class="api-toc-branch"><a href="#pitfalls">pitfalls</a></li>
+    </ul>
   </nav>
 
   <p>
@@ -1388,7 +1549,7 @@
   <hr>
 
   <div class="footer">
-    <p><a href="index.html">back to home</a></p>
+    <p><a href="#top">back to top</a> - <a href="index.html">back to home</a></p>
     <p>&copy; 2026 Guy Sviry</p>
   </div>
 

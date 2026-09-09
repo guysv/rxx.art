@@ -61,7 +61,8 @@ h3[id] { scroll-margin-top: 16px; }
   .api-toc::-webkit-scrollbar { display: none; }
   .api-toc > ul { display: block; }
   .api-toc .is-active > ul,
-  .api-toc li:focus-within > ul { display: block; }
+  .api-toc li:focus-within > ul,
+  .api-toc li:hover > ul { display: block; }
   .api-toc li > ul {
     width: max-content;
     max-width: 100%;
@@ -77,6 +78,61 @@ h3[id] { scroll-margin-top: 16px; }
   .api-toc li > ul a::before { content: none; }
   .api-toc .api-toc-api > a { font-size: 0.8em; color: #aaa; text-transform: none; font-weight: normal; }
   .api-toc a[aria-current="location"] { color: #00ff88; }
+}
+
+@supports (scroll-target-group: auto) and selector(a:target-current) {
+  @media (min-width: 1100px) {
+    .api-toc {
+      scroll-target-group: auto;
+      top: 24px;
+      bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      max-height: none;
+      overflow: visible;
+      padding: 0;
+      pointer-events: none;
+    }
+    /* Start at 336px; give up the spacer as the expanded tree grows. */
+    .api-toc::before {
+      content: "";
+      flex: 0 1 312px;
+    }
+    .api-toc > ul {
+      flex: 0 0 auto;
+      box-sizing: border-box;
+      max-height: 100%;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: none;
+      padding-block: 4px;
+      pointer-events: auto;
+    }
+    .api-toc > ul::-webkit-scrollbar { display: none; }
+    /* Keep link boxes in the scroll group even while their branch is folded. */
+    .api-toc li > ul {
+      display: block;
+      height: 0;
+      overflow: hidden;
+      margin-block: 0;
+    }
+    .api-toc li:has(a:target-current) > ul,
+    .api-toc li:focus-within > ul,
+    .api-toc li:hover > ul {
+      height: auto;
+      overflow: visible;
+      margin-block: 4px 8px;
+    }
+    .api-toc a:target-current { color: #00ff88; }
+    .api-toc > ul > li:has(.api-toc-branch a:target-current) > ul > .api-toc-api {
+      height: 0;
+      overflow: hidden;
+    }
+    .api-toc > ul > li:has(.api-toc-branch a:target-current) > ul > .api-toc-api:focus-within {
+      height: auto;
+      overflow: visible;
+    }
+  }
 }
 
 @media (max-width: 600px) {

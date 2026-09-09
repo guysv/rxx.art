@@ -33,49 +33,21 @@ document.addEventListener('click', (event) => {
 });
 
 const toc = document.querySelector('.nav-toc');
-const sectionLabels = new Map([...toc.querySelectorAll('a')].map(link => [link.hash.slice(1), link.textContent]));
-const tree = document.createElement('ul');
-const targets = [];
-let section;
-let subsection;
-
-function addTocItem(target, label, parent, branch = false) {
-  const item = document.createElement('li');
-  item.className = branch ? 'api-toc-branch' : 'api-toc-api';
-  const link = document.createElement('a');
-  link.href = `#${target.id}`;
-  link.textContent = label;
-  if (!branch) {
-    const parts = label.split(/(?<=\.|::)/);
-    if (parts.length > 1) link.replaceChildren(parts[0], document.createElement('wbr'), parts.slice(1).join(''));
-  }
-  item.append(link);
-  parent.append(item);
-  let children;
-  if (branch) {
-    children = document.createElement('ul');
-    item.append(children);
-  }
-  return { target, item, link, children };
-}
-
-document.querySelectorAll('h2[id], h3[id], details.api-entry').forEach(target => {
-  let record;
-  if (target.matches('h2')) {
-    section = addTocItem(target, sectionLabels.get(target.id), tree, true);
-    subsection = null;
-    record = section;
-  } else if (target.matches('h3')) {
-    subsection = addTocItem(target, target.textContent, section.children, true);
-    record = subsection;
-  } else {
-    const name = target.querySelector('.api-signature').textContent.split('(')[0];
-    record = addTocItem(target, name, (subsection || section).children);
-  }
-  targets.push({ ...record, section, subsection });
+const tree = toc.querySelector('ul');
+const targets = [...toc.querySelectorAll('a')].map(link => {
+  const item = link.parentElement;
+  const sectionItem = item.closest('.api-toc > ul > li');
+  const subsectionItem = item.closest('.api-toc > ul > li > ul > .api-toc-branch');
+  return {
+    target: document.getElementById(link.hash.slice(1)), item, link,
+    section: { item: sectionItem },
+    subsection: subsectionItem ? { item: subsectionItem } : null,
+  };
 });
-toc.replaceChildren(tree);
-toc.classList.add('api-toc');
+
+// Browsers with native scroll tracking expand the static tree entirely in CSS.
+const nativeToc = CSS.supports('scroll-target-group: auto') &&
+  CSS.supports('selector(a:target-current)');
 
 const sidebar = window.matchMedia('(min-width: 1100px)');
 let active;
@@ -124,13 +96,14 @@ function scheduleTocUpdate() {
   requestAnimationFrame(updateToc);
 }
 
-const observer = new IntersectionObserver(scheduleTocUpdate, { rootMargin: '-32px 0px 0px 0px' });
-targets.forEach(({ target }) => observer.observe(target));
-new ResizeObserver(scheduleTocUpdate).observe(tree);
-// Also cover large scroll jumps and movement within long expanded entries.
-window.addEventListener('scroll', scheduleTocUpdate, { passive: true });
-window.addEventListener('resize', scheduleTocUpdate);
-document.addEventListener('toggle', scheduleTocUpdate, true);
-document.fonts.ready.then(scheduleTocUpdate);
+if (!nativeToc) {
+  const observer = new IntersectionObserver(scheduleTocUpdate, { rootMargin: '-32px 0px 0px 0px' });
+  targets.forEach(({ target }) => observer.observe(target));
+  new ResizeObserver(scheduleTocUpdate).observe(tree);
+  window.addEventListener('scroll', scheduleTocUpdate, { passive: true });
+  window.addEventListener('resize', scheduleTocUpdate);
+  document.addEventListener('toggle', scheduleTocUpdate, true);
+  document.fonts.ready.then(scheduleTocUpdate);
+  updateToc();
+}
 revealLinkedApi();
-updateToc();
