@@ -944,34 +944,24 @@
     </details>
     <details class="api-entry">
       <summary>
-        <code class="api-signature api-signature-mobile">rx.create_sprite_vertices(<span class="api-params"><span class="api-param">texture,</span> <span class="api-param">dst,</span> <span class="api-param">color,</span> <span class="api-param">opacity</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptBuffer&gt;</span></code>
-        <span class="api-description">one quad mapping the whole texture onto <code>dst</code> (target pixels); six vertices</span>
+        <code class="api-signature api-signature-mobile">rx.create_sprite_vertices(<span class="api-params"><span class="api-param">texture,</span> <span class="api-param">options</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptBuffer&gt;</span></code>
+        <span class="api-description">convenience helper for the existing render-pass API: creates a six-vertex textured quad; bind the buffer with <code>pass.set_vertex_buffer</code> and draw with <code>pass.draw</code></span>
       </summary>
       <dl class="api-fields">
-            <div><dt><code>texture</code> <span class="api-type">ScriptTexture</span></dt><dd>A texture created by rx.create_texture().</dd></div>
-            <div><dt><code>dst</code> <span class="api-type">Rect</span></dt><dd>Destination rectangle in target pixels (y-up).</dd></div>
-            <div><dt><code>color</code> <span class="api-type">Rgba8</span></dt><dd>Vertex tint; use opaque white to preserve the texture colors.</dd></div>
-            <div><dt><code>opacity</code> <span class="api-type">f64</span></dt><dd>Opacity multiplier, normally 0.0 (transparent) through 1.0 (opaque).</dd></div>
-            <div class="api-result"><dt>returns <code>Option&lt;ScriptBuffer&gt;</code></dt><dd>Some(buffer) containing six vertices for the quad; None if the GPU is unavailable.</dd></div>
-          </dl>
-    </details>
-    <details class="api-entry">
-      <summary>
-        <code class="api-signature api-signature-mobile">rx.create_sprite_vertices_src(<span class="api-params"><span class="api-param">texture,</span> <span class="api-param">src,</span> <span class="api-param">dst</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptBuffer&gt;</span></code>
-        <span class="api-description">maps only <code>src</code> (texture pixels) onto <code>dst</code>; white, full opacity</span>
-      </summary>
-      <dl class="api-fields">
-            <div><dt><code>texture</code> <span class="api-type">ScriptTexture</span></dt><dd>A texture created by rx.create_texture().</dd></div>
-            <div><dt><code>src</code> <span class="api-type">Rect</span></dt><dd>Source rectangle in texture pixels (y-up), before mapping to dst.</dd></div>
-            <div><dt><code>dst</code> <span class="api-type">Rect</span></dt><dd>Destination rectangle in target pixels (y-up).</dd></div>
-            <div class="api-result"><dt>returns <code>Option&lt;ScriptBuffer&gt;</code></dt><dd>Some(buffer) containing six vertices with white tint and full opacity; None if the GPU is unavailable.</dd></div>
+            <div><dt><code>texture</code> <span class="api-type">ScriptTexture</span></dt><dd>Texture whose dimensions normalize source coordinates into UVs. This helper does not bind the texture or issue a draw.</dd></div>
+            <div><dt><code>options</code> <span class="api-type">Object</span></dt><dd>A descriptor such as <code>#{ dst, src, color, opacity }</code>. Only dst is required. Unknown fields and incorrectly typed values are rejected. The descriptor can be reused across calls.</dd></div>
+            <div><dt><code>options.dst</code> <span class="api-type">Rect</span></dt><dd>Required destination rectangle in target pixels (y-up).</dd></div>
+            <div><dt><code>options.src</code> <span class="api-type">Rect</span></dt><dd>Optional source rectangle in texture pixels (y-up). Defaults to the whole texture.</dd></div>
+            <div><dt><code>options.color</code> <span class="api-type">Rgba8</span></dt><dd>Optional vertex tint. Defaults to opaque white.</dd></div>
+            <div><dt><code>options.opacity</code> <span class="api-type">f64</span></dt><dd>Optional opacity multiplier, normally 0.0–1.0. Defaults to 1.0. Can be combined with a source rectangle and tint.</dd></div>
+            <div class="api-result"><dt>returns <code>Option&lt;ScriptBuffer&gt;</code></dt><dd>Some(buffer) containing six vertices in the existing sprite pipeline layout; None with an error message for invalid options or an unavailable GPU. Each call allocates a new GPU vertex buffer.</dd></div>
           </dl>
     </details>
   </div>
 
   <h3>buffer methods</h3>
 
-  <p><code>buffer</code> is a <code>ScriptBuffer</code> returned by a sprite-vertex constructor.</p>
+  <p><code>buffer</code> is a <code>ScriptBuffer</code> returned by <code>rx.create_sprite_vertices</code>.</p>
 
   <div class="api-list">
     <details class="api-entry">

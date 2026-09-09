@@ -267,7 +267,12 @@
     texture groups), and <code>rx.create_texture(w, h)</code> /
     <code>rx.read_png(path)</code> supply texture data. Bind groups and sprite
     vertices come from the <code>rx.create_*_bind_group</code> and
-    <code>rx.create_sprite_vertices*</code> helpers.
+    <code>rx.create_sprite_vertices(texture, options)</code> helper.
+    This convenience function builds a six-vertex quad for the existing
+    render-pass API; it does not bind resources or draw. The descriptor requires
+    <code>dst</code>; <code>src</code> defaults to the whole texture,
+    <code>color</code> to white, and <code>opacity</code> to 1.0.
+    Cropping, tint, and opacity can all be combined.
   </p>
 
   <h3>shade(state, rx, encoder)</h3>
@@ -291,7 +296,7 @@
 
     <span class="hl-k">let</span> tbg = rx.<span class="hl-f">create_transform_bind_group</span>(view.width, view.height, state.transform).<span class="hl-f">unwrap</span>();
     <span class="hl-k">let</span> sbg = rx.<span class="hl-f">create_texture_bind_group</span>(state.clipboard).<span class="hl-f">unwrap</span>();
-    <span class="hl-k">let</span> verts = rx.<span class="hl-f">create_sprite_vertices</span>(state.clipboard, dst, rx::<span class="hl-f">rgb</span>(<span class="hl-n">255</span>, <span class="hl-n">255</span>, <span class="hl-n">255</span>), <span class="hl-n">0.9</span>).<span class="hl-f">unwrap</span>();
+    <span class="hl-k">let</span> verts = rx.<span class="hl-f">create_sprite_vertices</span>(state.clipboard, #{ dst, opacity: <span class="hl-n">0.9</span> }).<span class="hl-f">unwrap</span>();
 
     <span class="hl-c">// staging overlay: a live preview, cleared each frame</span>
     <span class="hl-k">let</span> pass = encoder.<span class="hl-f">begin_staging_pass</span>(<span class="hl-s">"rotate-scale"</span>, state.active_view_id, <span class="hl-s">"load"</span>).<span class="hl-f">unwrap</span>();
@@ -322,7 +327,7 @@
 
     <span class="hl-k">let</span> src = rx::<span class="hl-f">rect</span>(<span class="hl-n">0.0</span>, <span class="hl-n">0.0</span>, <span class="hl-n">16.0</span>, <span class="hl-n">16.0</span>);
     <span class="hl-k">let</span> dst = rx::<span class="hl-f">rect</span>(<span class="hl-n">10.0</span>, <span class="hl-n">10.0</span>, <span class="hl-n">26.0</span>, <span class="hl-n">26.0</span>);
-    <span class="hl-k">let</span> v = rx.<span class="hl-f">create_sprite_vertices_src</span>(state.icons, src, dst).<span class="hl-f">unwrap</span>();
+    <span class="hl-k">let</span> v = rx.<span class="hl-f">create_sprite_vertices</span>(state.icons, #{ src, dst }).<span class="hl-f">unwrap</span>();
     pass.<span class="hl-f">set_vertex_buffer</span>(<span class="hl-n">0</span>, v).<span class="hl-f">unwrap</span>();
     pass.<span class="hl-f">draw</span>(v.<span class="hl-f">count</span>(), <span class="hl-n">1</span>).<span class="hl-f">unwrap</span>();
 }</code></pre>
