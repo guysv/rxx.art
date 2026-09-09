@@ -42,7 +42,13 @@
 .api-type { color: #aaa; overflow-wrap: anywhere; }
 .api-result { padding-top: 12px; border-top: 1px solid #222; }
 
-h3[id] { scroll-margin-top: 16px; }
+h3[id], p[id] { scroll-margin-top: 16px; }
+
+/* In-page cross-references keep the surrounding text color. */
+.api-xref { color: inherit; text-decoration: underline; text-decoration-color: #555; text-underline-offset: 3px; }
+.api-xref:hover,
+.api-xref:focus-visible { color: #FFD27D; text-decoration-color: currentColor; }
+.api-xref:focus-visible { outline: 1px solid #FFD27D; outline-offset: 2px; }
 .api-toc ul { list-style: none; margin: 0; padding: 0; }
 .api-toc li { margin: 0; }
 .api-toc li::before { content: none; }

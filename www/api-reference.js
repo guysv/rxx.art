@@ -14,11 +14,12 @@ function revealLinkedApi() {
 window.addEventListener('hashchange', revealLinkedApi);
 
 document.addEventListener('click', (event) => {
-  const anchor = event.target.closest('.api-anchor, .api-toc-api > a');
+  const anchor = event.target.closest('.api-anchor, .api-toc-api > a, .api-xref');
   if (anchor) {
     // Also reopen an entry when its fragment is already in the URL.
     if (!event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
-      document.getElementById(anchor.hash.slice(1)).open = true;
+      const target = document.getElementById(anchor.hash.slice(1));
+      if (target?.matches('details.api-entry')) target.open = true;
     }
     return;
   }
