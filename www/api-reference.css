@@ -20,7 +20,9 @@
 }
 .api-entry > summary:focus-visible { outline: 1px solid #FFD27D; outline-offset: 5px; }
 .api-description { display: block; grid-column: 2; margin-top: 8px; overflow-wrap: anywhere; }
-.api-anchor { padding: 0 6px; color: #aaa; text-decoration: none; }
+.api-anchor { padding: 0 6px; color: #aaa; text-decoration: none; opacity: 0; }
+.api-entry:hover .api-anchor,
+.api-entry > summary:focus-within .api-anchor { opacity: 1; }
 .api-anchor:hover,
 .api-anchor:focus-visible { color: #00ff88; }
 .api-anchor:focus-visible { outline: 1px solid #FFD27D; outline-offset: 2px; }
@@ -60,9 +62,7 @@ h3[id] { scroll-margin-top: 16px; }
   }
   .api-toc::-webkit-scrollbar { display: none; }
   .api-toc > ul { display: block; }
-  .api-toc .is-active > ul,
-  .api-toc li:focus-within > ul,
-  .api-toc li:hover > ul { display: block; }
+  .api-toc .is-active > ul { display: block; }
   .api-toc li > ul {
     width: max-content;
     max-width: 100%;
@@ -72,7 +72,6 @@ h3[id] { scroll-margin-top: 16px; }
     border-right: 1px solid #333;
   }
   .api-toc .has-active-subsection > ul > .api-toc-api { display: none; }
-  .api-toc .has-active-subsection > ul > .api-toc-api:focus-within { display: block; }
   .api-toc li > ul a { font-size: 0.9em; overflow-wrap: anywhere; }
   .api-toc .api-toc-branch > a { text-align: right; }
   .api-toc li > ul a::before { content: none; }
@@ -116,9 +115,7 @@ h3[id] { scroll-margin-top: 16px; }
       overflow: hidden;
       margin-block: 0;
     }
-    .api-toc li:has(a:target-current) > ul,
-    .api-toc li:focus-within > ul,
-    .api-toc li:hover > ul {
+    .api-toc li:has(a:target-current) > ul {
       height: auto;
       overflow: visible;
       margin-block: 4px 8px;
@@ -127,10 +124,6 @@ h3[id] { scroll-margin-top: 16px; }
     .api-toc > ul > li:has(.api-toc-branch a:target-current) > ul > .api-toc-api {
       height: 0;
       overflow: hidden;
-    }
-    .api-toc > ul > li:has(.api-toc-branch a:target-current) > ul > .api-toc-api:focus-within {
-      height: auto;
-      overflow: visible;
     }
   }
 }
