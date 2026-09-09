@@ -12,8 +12,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css?v=reference-3">
-  <link rel="stylesheet" href="api-reference.css?v=9">
-  <script src="api-reference.js?v=1" defer></script>
+  <link rel="stylesheet" href="api-reference.css?v=17">
+  <script src="api-reference.js?v=5" defer></script>
 </head>
 <body class="api-reference">
 
@@ -33,7 +33,7 @@
     <a href="plugins.html">plugins</a>
     <a href="https://github.com/guysv/rxx">source<svg class="gh" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg></a>
   </p>
-  <p class="nav nav-sections nav-toc">
+  <nav class="nav nav-sections nav-toc" aria-label="API contents">
     <a href="#plugins">plugins</a>
     <a href="#hooks">hooks</a>
     <a href="#session">session</a>
@@ -42,7 +42,7 @@
     <a href="#gpu">gpu</a>
     <a href="#types">types</a>
     <a href="#pitfalls">pitfalls</a>
-  </p>
+  </nav>
 
   <p>
     The complete <em class="rxx">rxx</em> scripting API. Plugins are
@@ -106,8 +106,9 @@
   </p>
 
   <div class="api-list">
-    <details class="api-entry">
+    <details class="api-entry" id="init">
       <summary>
+        <a class="api-anchor" href="#init" aria-label="Link to init" title="Link to init">#</a>
         <code class="api-signature">init(<span class="api-params"><span class="api-param">rx</span></span>)<span class="api-return"> -&gt; Value</span></code>
         <span class="api-description">once at load; the return value is the plugin state</span>
       </summary>
@@ -116,8 +117,9 @@
             <div class="api-result"><dt>returns <code>Value</code></dt><dd>The initial plugin state, passed to later hooks, command handlers, and exported functions.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="unload">
       <summary>
+        <a class="api-anchor" href="#unload" aria-label="Link to unload" title="Link to unload">#</a>
         <code class="api-signature">unload(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx</span></span>)</code>
         <span class="api-description">before the plugin is dropped (unload / hot reload)</span>
       </summary>
@@ -127,8 +129,9 @@
             <div class="api-result"><dt>returns <code>Value</code></dt><dd>Ignored by the host; normally return unit, ().</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="update">
       <summary>
+        <a class="api-anchor" href="#update" aria-label="Link to update" title="Link to update">#</a>
         <code class="api-signature">update(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx</span></span>)</code>
         <span class="api-description">every frame, before rendering</span>
       </summary>
@@ -138,8 +141,9 @@
             <div class="api-result"><dt>returns <code>Value</code></dt><dd>Ignored by the host; normally return unit, ().</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="switch_mode">
       <summary>
+        <a class="api-anchor" href="#switch_mode" aria-label="Link to switch_mode" title="Link to switch_mode">#</a>
         <code class="api-signature api-signature-mobile">switch_mode(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx</span></span>)</code>
         <span class="api-description">on mode <em>edges</em> (query <code>rx.mode()</code>); fires once for the initial mode, and on <code>command</code>-mode entries</span>
       </summary>
@@ -149,8 +153,9 @@
             <div class="api-result"><dt>returns <code>Value</code></dt><dd>Ignored by the host; normally return unit, ().</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="cursor_moved">
       <summary>
+        <a class="api-anchor" href="#cursor_moved" aria-label="Link to cursor_moved" title="Link to cursor_moved">#</a>
         <code class="api-signature api-signature-mobile">cursor_moved(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx,</span> <span class="api-param">x,</span> <span class="api-param">y</span></span>)</code>
         <span class="api-description">mouse motion, window logical coords (<code>rx.session_coords(x, y)</code> converts)</span>
       </summary>
@@ -162,8 +167,9 @@
             <div class="api-result"><dt>returns <code>Value</code></dt><dd>Ignored by the host; this hook does not consume the mouse event.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="mouse_input">
       <summary>
+        <a class="api-anchor" href="#mouse_input" aria-label="Link to mouse_input" title="Link to mouse_input">#</a>
         <code class="api-signature api-signature-mobile">mouse_input(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx,</span> <span class="api-param">button,</span> <span class="api-param">input</span></span>)</code>
         <span class="api-description"><code>button</code> is <code>"left"</code>/<code>"right"</code>/<code>"middle"</code>, <code>input</code> is <code>"pressed"</code>/<code>"released"</code></span>
       </summary>
@@ -175,8 +181,9 @@
             <div class="api-result"><dt>returns <code>Value</code></dt><dd>Ignored by the host; this hook does not consume the button event.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="view_added">
       <summary>
+        <a class="api-anchor" href="#view_added" aria-label="Link to view_added" title="Link to view_added">#</a>
         <code class="api-signature api-signature-mobile">view_added(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx,</span> <span class="api-param">id</span></span>)</code>
         <span class="api-description">view opened</span>
       </summary>
@@ -187,8 +194,9 @@
             <div class="api-result"><dt>returns <code>Value</code></dt><dd>Ignored by the host; normally return unit, ().</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="view_removed">
       <summary>
+        <a class="api-anchor" href="#view_removed" aria-label="Link to view_removed" title="Link to view_removed">#</a>
         <code class="api-signature api-signature-mobile">view_removed(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx,</span> <span class="api-param">id</span></span>)</code>
         <span class="api-description">view closed</span>
       </summary>
@@ -199,8 +207,9 @@
             <div class="api-result"><dt>returns <code>Value</code></dt><dd>Ignored by the host; normally return unit, ().</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="shade">
       <summary>
+        <a class="api-anchor" href="#shade" aria-label="Link to shade" title="Link to shade">#</a>
         <code class="api-signature api-signature-mobile">shade(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx,</span> <span class="api-param">encoder</span></span>)</code>
         <span class="api-description">per frame: record render/compute passes on the frame encoder (before screen composition)</span>
       </summary>
@@ -211,8 +220,9 @@
             <div class="api-result"><dt>returns <code>Value</code></dt><dd>Ignored by the host. Recorded GPU commands are the output of this hook.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="render">
       <summary>
+        <a class="api-anchor" href="#render" aria-label="Link to render" title="Link to render">#</a>
         <code class="api-signature api-signature-mobile">render(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx,</span> <span class="api-param">pass</span></span>)</code>
         <span class="api-description">per frame: the live screen pass &mdash; everything drawn, present ahead &mdash; for screen-space pipeline drawing</span>
       </summary>
@@ -223,8 +233,9 @@
             <div class="api-result"><dt>returns <code>Value</code></dt><dd>Ignored by the host. Drawing recorded on pass is the output of this hook.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="draw">
       <summary>
+        <a class="api-anchor" href="#draw" aria-label="Link to draw" title="Link to draw">#</a>
         <code class="api-signature">draw(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx</span></span>)</code>
         <span class="api-description">per frame: UI-tier text/line drawing (<code>rx.draw_text</code> / <code>rx.draw_line</code> are only live here)</span>
       </summary>
@@ -239,8 +250,9 @@
   <h2 id="session">session &amp; modes</h2>
 
   <div class="api-list">
-    <details class="api-entry">
+    <details class="api-entry" id="rx-mode">
       <summary>
+        <a class="api-anchor" href="#rx-mode" aria-label="Link to rx.mode" title="Link to rx.mode">#</a>
         <code class="api-signature">rx.mode()<span class="api-return"> -&gt; String</span></code>
         <span class="api-description">current mode (<code>"normal"</code>, <code>"visual"</code>, <code>"command"</code>, &hellip; or a script mode)</span>
       </summary>
@@ -249,8 +261,9 @@
             <div class="api-result"><dt>returns <code>String</code></dt><dd>The current mode name, such as &quot;normal&quot;, &quot;visual&quot;, &quot;command&quot;, or a script-mode name.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-prev_mode">
       <summary>
+        <a class="api-anchor" href="#rx-prev_mode" aria-label="Link to rx.prev_mode" title="Link to rx.prev_mode">#</a>
         <code class="api-signature api-signature-mobile">rx.prev_mode()<span class="api-return"> -&gt; Option&lt;String&gt;</span></code>
         <span class="api-description">previous mode</span>
       </summary>
@@ -259,8 +272,9 @@
             <div class="api-result"><dt>returns <code>Option&lt;String&gt;</code></dt><dd>Some(name) for the previous mode; None if there is no previous mode.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-switch_mode">
       <summary>
+        <a class="api-anchor" href="#rx-switch_mode" aria-label="Link to rx.switch_mode" title="Link to rx.switch_mode">#</a>
         <code class="api-signature">rx.switch_mode(<span class="api-params"><span class="api-param">name</span></span>)<span class="api-return"> -&gt; bool</span></code>
         <span class="api-description">builtin names switch builtin modes; any other name enters a <em>script mode</em> &mdash; builtin input handling is inert there, escape exits</span>
       </summary>
@@ -269,8 +283,9 @@
             <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when the name is accepted and the switch is requested; false for an invalid name.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-message">
       <summary>
+        <a class="api-anchor" href="#rx-message" aria-label="Link to rx.message" title="Link to rx.message">#</a>
         <code class="api-signature">rx.message(<span class="api-params"><span class="api-param">msg</span></span>)<span class="api-return"> -&gt; ()</span></code>
         <span class="api-description">post to the message line</span>
       </summary>
@@ -279,8 +294,9 @@
             <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-fg">
       <summary>
+        <a class="api-anchor" href="#rx-fg" aria-label="Link to rx.fg" title="Link to rx.fg">#</a>
         <code class="api-signature">rx.fg()<span class="api-return"> -&gt; Rgba8</span></code>
         <span class="api-description">the color pair</span>
       </summary>
@@ -289,8 +305,9 @@
             <div class="api-result"><dt>returns <code>Rgba8</code></dt><dd>The current foreground color.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-bg">
       <summary>
+        <a class="api-anchor" href="#rx-bg" aria-label="Link to rx.bg" title="Link to rx.bg">#</a>
         <code class="api-signature">rx.bg()<span class="api-return"> -&gt; Rgba8</span></code>
         <span class="api-description">the color pair</span>
       </summary>
@@ -299,8 +316,9 @@
             <div class="api-result"><dt>returns <code>Rgba8</code></dt><dd>The current background color.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-set_fg">
       <summary>
+        <a class="api-anchor" href="#rx-set_fg" aria-label="Link to rx.set_fg" title="Link to rx.set_fg">#</a>
         <code class="api-signature">rx.set_fg(<span class="api-params"><span class="api-param">color</span></span>)<span class="api-return"> -&gt; ()</span></code>
         <span class="api-description">picker semantics: old fg becomes bg; transparent ignored</span>
       </summary>
@@ -311,11 +329,12 @@
     </details>
   </div>
 
-  <h3>coordinates &amp; screen</h3>
+  <h3 id="coordinates-screen">coordinates &amp; screen</h3>
 
   <div class="api-list">
-    <details class="api-entry">
+    <details class="api-entry" id="rx-offset">
       <summary>
+        <a class="api-anchor" href="#rx-offset" aria-label="Link to rx.offset" title="Link to rx.offset">#</a>
         <code class="api-signature">rx.offset()<span class="api-return"> -&gt; (f64, f64)</span></code>
         <span class="api-description">workspace pan offset</span>
       </summary>
@@ -324,8 +343,9 @@
             <div class="api-result"><dt>returns <code>(f64, f64)</code></dt><dd>Workspace pan offset as (x, y), in session pixels.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-screen_size">
       <summary>
+        <a class="api-anchor" href="#rx-screen_size" aria-label="Link to rx.screen_size" title="Link to rx.screen_size">#</a>
         <code class="api-signature">rx.screen_size()<span class="api-return"> -&gt; (i64, i64)</span></code>
         <span class="api-description">the <code>render</code> stage target size; build screen orthos against it</span>
       </summary>
@@ -334,8 +354,9 @@
             <div class="api-result"><dt>returns <code>(i64, i64)</code></dt><dd>The render target dimensions (width, height), in session pixels.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-cursor">
       <summary>
+        <a class="api-anchor" href="#rx-cursor" aria-label="Link to rx.cursor" title="Link to rx.cursor">#</a>
         <code class="api-signature">rx.cursor()<span class="api-return"> -&gt; (f64, f64)</span></code>
         <span class="api-description">cursor in session coordinates</span>
       </summary>
@@ -344,8 +365,9 @@
             <div class="api-result"><dt>returns <code>(f64, f64)</code></dt><dd>Cursor position (x, y) in session coordinates.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-session_coords">
       <summary>
+        <a class="api-anchor" href="#rx-session_coords" aria-label="Link to rx.session_coords" title="Link to rx.session_coords">#</a>
         <code class="api-signature api-signature-mobile">rx.session_coords(<span class="api-params"><span class="api-param">x,</span> <span class="api-param">y</span></span>)<span class="api-return"> -&gt; (f64, f64)</span></code>
         <span class="api-description">window logical &rarr; session</span>
       </summary>
@@ -355,8 +377,9 @@
             <div class="api-result"><dt>returns <code>(f64, f64)</code></dt><dd>The converted (x, y) in session coordinates, without rounding to integer pixels.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-active_view_coords">
       <summary>
+        <a class="api-anchor" href="#rx-active_view_coords" aria-label="Link to rx.active_view_coords" title="Link to rx.active_view_coords">#</a>
         <code class="api-signature api-signature-mobile">rx.active_view_coords(<span class="api-params"><span class="api-param">x,</span> <span class="api-param">y</span></span>)<span class="api-return"> -&gt; (f64, f64)</span></code>
         <span class="api-description">session &rarr; active-view (unrounded)</span>
       </summary>
@@ -377,8 +400,9 @@
   <h2 id="views">views</h2>
 
   <div class="api-list">
-    <details class="api-entry">
+    <details class="api-entry" id="rx-active_view_id">
       <summary>
+        <a class="api-anchor" href="#rx-active_view_id" aria-label="Link to rx.active_view_id" title="Link to rx.active_view_id">#</a>
         <code class="api-signature">rx.active_view_id()<span class="api-return"> -&gt; i64</span></code>
       </summary>
       <dl class="api-fields">
@@ -386,8 +410,9 @@
             <div class="api-result"><dt>returns <code>i64</code></dt><dd>The active view ID; this is an identifier, not a position in rx.views().</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-views">
       <summary>
+        <a class="api-anchor" href="#rx-views" aria-label="Link to rx.views" title="Link to rx.views">#</a>
         <code class="api-signature">rx.views()<span class="api-return"> -&gt; Vec&lt;ViewInfo&gt;</span></code>
         <span class="api-description">snapshots, in view order</span>
       </summary>
@@ -396,8 +421,9 @@
             <div class="api-result"><dt>returns <code>Vec&lt;ViewInfo&gt;</code></dt><dd>Read-only snapshots of all views, in view order. Empty when there are no views.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-view_pixels">
       <summary>
+        <a class="api-anchor" href="#rx-view_pixels" aria-label="Link to rx.view_pixels" title="Link to rx.view_pixels">#</a>
         <code class="api-signature api-signature-mobile">rx.view_pixels(<span class="api-params"><span class="api-param">id,</span> <span class="api-param">rect</span></span>)<span class="api-return"> -&gt; Option&lt;Bytes&gt;</span></code>
         <span class="api-description">rgba8, row-major, from the <em>recorded snapshot</em> (see pitfalls); rect clamped</span>
       </summary>
@@ -407,8 +433,9 @@
             <div class="api-result"><dt>returns <code>Option&lt;Bytes&gt;</code></dt><dd>Some(bytes) from the recorded bottom-layer snapshot, RGBA8 row-major with the top row first; None for a missing view, an empty intersection, or a failed read.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-view_layer_pixels">
       <summary>
+        <a class="api-anchor" href="#rx-view_layer_pixels" aria-label="Link to rx.view_layer_pixels" title="Link to rx.view_layer_pixels">#</a>
         <code class="api-signature api-signature-mobile">rx.view_layer_pixels(<span class="api-params"><span class="api-param">id,</span> <span class="api-param">layer,</span> <span class="api-param">rect</span></span>)<span class="api-return"> -&gt; Option&lt;Bytes&gt;</span></code>
         <span class="api-description">Read a recorded layer strip, with <code>0</code> as the bottom layer. The rectangle uses display-space y in <code>0..frame_height</code>; x can span the frame strip.</span>
       </summary>
@@ -419,8 +446,9 @@
             <div class="api-result"><dt>returns <code>Option&lt;Bytes&gt;</code></dt><dd>Some(bytes) from the requested recorded layer, RGBA8 row-major with the top row first; None for a missing view/layer, an empty intersection, or a failed read.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-layer_visibility">
       <summary>
+        <a class="api-anchor" href="#rx-layer_visibility" aria-label="Link to rx.layer_visibility" title="Link to rx.layer_visibility">#</a>
         <code class="api-signature api-signature-mobile">rx.layer_visibility(<span class="api-params"><span class="api-param">id</span></span>)<span class="api-return"> -&gt; Vec&lt;bool&gt;</span></code>
         <span class="api-description">per-layer <code>visible</code>, bottom strip first; empty if the view doesn't exist</span>
       </summary>
@@ -429,8 +457,9 @@
             <div class="api-result"><dt>returns <code>Vec&lt;bool&gt;</code></dt><dd>One visibility flag per layer, bottom first (index 0); empty for a missing view.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-set_animation_frame">
       <summary>
+        <a class="api-anchor" href="#rx-set_animation_frame" aria-label="Link to rx.set_animation_frame" title="Link to rx.set_animation_frame">#</a>
         <code class="api-signature api-signature-mobile">rx.set_animation_frame(<span class="api-params"><span class="api-param">id,</span> <span class="api-param">frame</span></span>)<span class="api-return"> -&gt; bool</span></code>
         <span class="api-description">set the view's current animation frame; wraps by its frame count; false if the view doesn't exist</span>
       </summary>
@@ -440,8 +469,9 @@
             <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when the view exists and its current frame is set; false for a missing view.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-set_animation_sequence">
       <summary>
+        <a class="api-anchor" href="#rx-set_animation_sequence" aria-label="Link to rx.set_animation_sequence" title="Link to rx.set_animation_sequence">#</a>
         <code class="api-signature api-signature-mobile">rx.set_animation_sequence(<span class="api-params"><span class="api-param">id,</span> <span class="api-param">frames</span></span>)<span class="api-return"> -&gt; bool</span></code>
         <span class="api-description">set a custom playback sequence of zero-based frame indices; empty restores natural order; false for a missing view or an out-of-range index</span>
       </summary>
@@ -451,8 +481,9 @@
             <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when accepted; false if the view is missing or any index is outside its frame range.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-animation_sequence">
       <summary>
+        <a class="api-anchor" href="#rx-animation_sequence" aria-label="Link to rx.animation_sequence" title="Link to rx.animation_sequence">#</a>
         <code class="api-signature api-signature-mobile">rx.animation_sequence(<span class="api-params"><span class="api-param">id</span></span>)<span class="api-return"> -&gt; Vec&lt;i64&gt;</span></code>
         <span class="api-description">the custom playback sequence; empty means natural order (and is also returned for a missing view)</span>
       </summary>
@@ -461,8 +492,9 @@
             <div class="api-result"><dt>returns <code>Vec&lt;i64&gt;</code></dt><dd>The custom zero-based playback sequence; empty for natural order or a missing view.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-clear_animation_sequence">
       <summary>
+        <a class="api-anchor" href="#rx-clear_animation_sequence" aria-label="Link to rx.clear_animation_sequence" title="Link to rx.clear_animation_sequence">#</a>
         <code class="api-signature api-signature-mobile">rx.clear_animation_sequence(<span class="api-params"><span class="api-param">id</span></span>)<span class="api-return"> -&gt; bool</span></code>
         <span class="api-description">restore natural frame-order playback without changing the visible frame; false if the view doesn't exist</span>
       </summary>
@@ -471,8 +503,9 @@
             <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when natural playback order is restored; false for a missing view. The visible frame is preserved.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-set_animation_preview_visible">
       <summary>
+        <a class="api-anchor" href="#rx-set_animation_preview_visible" aria-label="Link to rx.set_animation_preview_visible" title="Link to rx.set_animation_preview_visible">#</a>
         <code class="api-signature api-signature-mobile">rx.set_animation_preview_visible(<span class="api-params"><span class="api-param">id,</span> <span class="api-param">visible</span></span>)<span class="api-return"> -&gt; bool</span></code>
         <span class="api-description">show or hide the built-in animation preview for the view; false if the view doesn't exist</span>
       </summary>
@@ -482,8 +515,9 @@
             <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when the view exists and its preview flag is set; false for a missing view.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-touch_view">
       <summary>
+        <a class="api-anchor" href="#rx-touch_view" aria-label="Link to rx.touch_view" title="Link to rx.touch_view">#</a>
         <code class="api-signature">rx.touch_view(<span class="api-params"><span class="api-param">id</span></span>)<span class="api-return"> -&gt; ()</span></code>
         <span class="api-description">mark modified &rarr; contents re-recorded (do this after painting a view via a pass)</span>
       </summary>
@@ -492,8 +526,9 @@
             <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-clear_view_rect">
       <summary>
+        <a class="api-anchor" href="#rx-clear_view_rect" aria-label="Link to rx.clear_view_rect" title="Link to rx.clear_view_rect">#</a>
         <code class="api-signature">rx.clear_view_rect(<span class="api-params"><span class="api-param">rect</span></span>)<span class="api-return"> -&gt; ()</span></code>
         <span class="api-description">clear a rect of the active view to transparent &mdash; a recorded paint</span>
       </summary>
@@ -502,8 +537,9 @@
             <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-damage_view">
       <summary>
+        <a class="api-anchor" href="#rx-damage_view" aria-label="Link to rx.damage_view" title="Link to rx.damage_view">#</a>
         <code class="api-signature">rx.damage_view(<span class="api-params"><span class="api-param">id</span></span>)<span class="api-return"> -&gt; ()</span></code>
         <span class="api-description">re-render from the snapshot, discarding unrecorded GPU-side paint (kill a preview)</span>
       </summary>
@@ -523,11 +559,12 @@
     <code>active_layer</code> (<code>0</code> is the bottom strip).
   </p>
 
-  <h3>selection</h3>
+  <h3 id="selection">selection</h3>
 
   <div class="api-list">
-    <details class="api-entry">
+    <details class="api-entry" id="rx-selection">
       <summary>
+        <a class="api-anchor" href="#rx-selection" aria-label="Link to rx.selection" title="Link to rx.selection">#</a>
         <code class="api-signature api-signature-mobile">rx.selection()<span class="api-return"> -&gt; Option&lt;(i64, i64, i64, i64)&gt;</span></code>
         <span class="api-description">normalized (<code>x1 &lt;= x2</code>, <code>y1 &lt;= y2</code>) regardless of drag direction</span>
       </summary>
@@ -536,8 +573,9 @@
             <div class="api-result"><dt>returns <code>Option&lt;(i64, i64, i64, i64)&gt;</code></dt><dd>Some((x1, y1, x2, y2)) with normalized bounds, or None when no selection exists.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-set_selection">
       <summary>
+        <a class="api-anchor" href="#rx-set_selection" aria-label="Link to rx.set_selection" title="Link to rx.set_selection">#</a>
         <code class="api-signature api-signature-mobile">rx.set_selection(<span class="api-params"><span class="api-param">x1,</span> <span class="api-param">y1,</span> <span class="api-param">x2,</span> <span class="api-param">y2</span></span>)<span class="api-return"> -&gt; ()</span></code>
       </summary>
       <dl class="api-fields">
@@ -548,8 +586,9 @@
             <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-clear_selection">
       <summary>
+        <a class="api-anchor" href="#rx-clear_selection" aria-label="Link to rx.clear_selection" title="Link to rx.clear_selection">#</a>
         <code class="api-signature">rx.clear_selection()<span class="api-return"> -&gt; ()</span></code>
       </summary>
       <dl class="api-fields">
@@ -561,11 +600,12 @@
 
   <p>The selection is cleared when the session returns to normal mode.</p>
 
-  <h3>settings</h3>
+  <h3 id="settings">settings</h3>
 
   <div class="api-list">
-    <details class="api-entry">
+    <details class="api-entry" id="rx-setting">
       <summary>
+        <a class="api-anchor" href="#rx-setting" aria-label="Link to rx.setting" title="Link to rx.setting">#</a>
         <code class="api-signature">rx.setting(<span class="api-params"><span class="api-param">name</span></span>)<span class="api-return"> -&gt; Value</span></code>
         <span class="api-description">bool / int / float / string / tuple; unit if absent</span>
       </summary>
@@ -574,8 +614,9 @@
             <div class="api-result"><dt>returns <code>Value</code></dt><dd>The setting as bool, i64, f64, String, or a pair of numbers. Color settings are returned as strings. An unknown setting returns unit, ().</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-set_setting">
       <summary>
+        <a class="api-anchor" href="#rx-set_setting" aria-label="Link to rx.set_setting" title="Link to rx.set_setting">#</a>
         <code class="api-signature api-signature-mobile">rx.set_setting(<span class="api-params"><span class="api-param">name,</span> <span class="api-param">value</span></span>)<span class="api-return"> -&gt; bool</span></code>
         <span class="api-description">Set an existing scalar setting; the value must match its current type.</span>
       </summary>
@@ -585,8 +626,9 @@
             <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when the update is applied; false for an unknown setting, a type mismatch, an unsupported type, or a rejected value.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-declare_setting">
       <summary>
+        <a class="api-anchor" href="#rx-declare_setting" aria-label="Link to rx.declare_setting" title="Link to rx.declare_setting">#</a>
         <code class="api-signature api-signature-mobile">rx.declare_setting(<span class="api-params"><span class="api-param">name,</span> <span class="api-param">default</span></span>)<span class="api-return"> -&gt; bool</span></code>
         <span class="api-description">plugin-owned, <code>:set</code>-able like builtins; re-declaring is a no-op</span>
       </summary>
@@ -601,8 +643,9 @@
   <h2 id="commands">commands &amp; bindings</h2>
 
   <div class="api-list">
-    <details class="api-entry">
+    <details class="api-entry" id="rx-register_command">
       <summary>
+        <a class="api-anchor" href="#rx-register_command" aria-label="Link to rx.register_command" title="Link to rx.register_command">#</a>
         <code class="api-signature api-signature-mobile">rx.register_command(<span class="api-params"><span class="api-param">name,</span> <span class="api-param">sig,</span> <span class="api-param">help,</span> <span class="api-param">handler</span></span>)<span class="api-return"> -&gt; bool</span></code>
         <span class="api-description"><code>sig</code> is typed params: <code>"int"</code>, <code>"float"</code>, <code>"str"</code>, <code>"color"</code>, <code>"bool"</code>, suffix <code>?</code> for optional; handler is <code>handler(state, rx, args)</code></span>
       </summary>
@@ -614,8 +657,9 @@
             <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when registered; false for an unavailable registration context, invalid signature, or conflicting name. Failure posts a message.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-register_command_repeating">
       <summary>
+        <a class="api-anchor" href="#rx-register_command_repeating" aria-label="Link to rx.register_command_repeating" title="Link to rx.register_command_repeating">#</a>
         <code class="api-signature api-signature-mobile">rx.register_command_repeating(<span class="api-params"><span class="api-param">name,</span> <span class="api-param">sig,</span> <span class="api-param">help,</span> <span class="api-param">handler</span></span>)<span class="api-return"> -&gt; bool</span></code>
         <span class="api-description">same, repeats while the bound key is held</span>
       </summary>
@@ -627,8 +671,9 @@
             <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when registered; false for an unavailable registration context, invalid signature, or conflicting name. Failure posts a message.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-bind">
       <summary>
+        <a class="api-anchor" href="#rx-bind" aria-label="Link to rx.bind" title="Link to rx.bind">#</a>
         <code class="api-signature">rx.bind(<span class="api-params"><span class="api-param">mode,</span> <span class="api-param">mapping</span></span>)<span class="api-return"> -&gt; bool</span></code>
         <span class="api-description">script-tier binding in a script mode; <code>:map</code> syntax, e.g. <code>"&lt;tab&gt; :v/prev"</code>, <code>"'r' :rotate 90 {:rotate 0}"</code>; wins over general bindings while the mode is active, may fire with the mouse held</span>
       </summary>
@@ -638,8 +683,9 @@
             <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when the mapping parses and is installed; false for an invalid mode name or mapping, including trailing input.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-run_builtin">
       <summary>
+        <a class="api-anchor" href="#rx-run_builtin" aria-label="Link to rx.run_builtin" title="Link to rx.run_builtin">#</a>
         <code class="api-signature api-signature-mobile">rx.run_builtin(<span class="api-params"><span class="api-param">invocation</span></span>)<span class="api-return"> -&gt; bool</span></code>
         <span class="api-description">run a <em>builtin</em> command (script commands aren't resolvable through it)</span>
       </summary>
@@ -656,11 +702,12 @@
     drive script modes entirely through bindings.
   </p>
 
-  <h3>meta plugins</h3>
+  <h3 id="meta-plugins">meta plugins</h3>
 
   <div class="api-list">
-    <details class="api-entry">
+    <details class="api-entry" id="rx-export">
       <summary>
+        <a class="api-anchor" href="#rx-export" aria-label="Link to rx.export" title="Link to rx.export">#</a>
         <code class="api-signature api-signature-mobile">rx.export(<span class="api-params"><span class="api-param">name,</span> <span class="api-param">handler</span></span>)<span class="api-return"> -&gt; bool</span></code>
         <span class="api-description">offer <code>handler(state, rx, args)</code> to other plugins, run with the <em>exporting</em> plugin's state</span>
       </summary>
@@ -670,8 +717,9 @@
             <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when exported; false for an unavailable registration context or a duplicate export name.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-call_plugin">
       <summary>
+        <a class="api-anchor" href="#rx-call_plugin" aria-label="Link to rx.call_plugin" title="Link to rx.call_plugin">#</a>
         <code class="api-signature api-signature-mobile">rx.call_plugin(<span class="api-params"><span class="api-param">plugin,</span> <span class="api-param">name,</span> <span class="api-param">args</span></span>)<span class="api-return"> -&gt; Result&lt;Value, String&gt;</span></code>
         <span class="api-description">call another plugin's export</span>
       </summary>
@@ -684,11 +732,12 @@
     </details>
   </div>
 
-  <h3>UI drawing (the <code>draw</code> hook only)</h3>
+  <h3 id="ui-drawing">UI drawing (the <code>draw</code> hook only)</h3>
 
   <div class="api-list">
-    <details class="api-entry">
+    <details class="api-entry" id="rx-draw_text">
       <summary>
+        <a class="api-anchor" href="#rx-draw_text" aria-label="Link to rx.draw_text" title="Link to rx.draw_text">#</a>
         <code class="api-signature api-signature-mobile">rx.draw_text(<span class="api-params"><span class="api-param">text,</span> <span class="api-param">x,</span> <span class="api-param">y,</span> <span class="api-param">color</span></span>)<span class="api-return"> -&gt; ()</span></code>
         <span class="api-description">UI coordinates; no-op outside <code>draw</code></span>
       </summary>
@@ -700,8 +749,9 @@
             <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-draw_line">
       <summary>
+        <a class="api-anchor" href="#rx-draw_line" aria-label="Link to rx.draw_line" title="Link to rx.draw_line">#</a>
         <code class="api-signature api-signature-mobile">rx.draw_line(<span class="api-params"><span class="api-param">p1,</span> <span class="api-param">p2,</span> <span class="api-param">color</span></span>)<span class="api-return"> -&gt; ()</span></code>
         <span class="api-description">1px line, <code>(x, y)</code> tuples; no-op outside <code>draw</code></span>
       </summary>
@@ -714,11 +764,12 @@
     </details>
   </div>
 
-  <h3>files &amp; output</h3>
+  <h3 id="files-output">files &amp; output</h3>
 
   <div class="api-list">
-    <details class="api-entry">
+    <details class="api-entry" id="rx-read_file">
       <summary>
+        <a class="api-anchor" href="#rx-read_file" aria-label="Link to rx.read_file" title="Link to rx.read_file">#</a>
         <code class="api-signature api-signature-mobile">rx.read_file(<span class="api-params"><span class="api-param">path</span></span>)<span class="api-return"> -&gt; Option&lt;String&gt;</span></code>
         <span class="api-description">relative to the <em>plugin's</em> directory (shaders etc.)</span>
       </summary>
@@ -727,8 +778,9 @@
             <div class="api-result"><dt>returns <code>Option&lt;String&gt;</code></dt><dd>Some(text) for a UTF-8 file; None with an error message if reading or decoding fails.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-read_png">
       <summary>
+        <a class="api-anchor" href="#rx-read_png" aria-label="Link to rx.read_png" title="Link to rx.read_png">#</a>
         <code class="api-signature api-signature-mobile">rx.read_png(<span class="api-params"><span class="api-param">path</span></span>)<span class="api-return"> -&gt; Option&lt;(i64, i64, Bytes)&gt;</span></code>
         <span class="api-description">decode an 8-bit RGBA PNG relative to the <em>plugin's</em> directory (cursor/icon assets) &rarr; <code>(w, h, pixels)</code>, row-major rgba8 &mdash; the layout <code>upload</code>/<code>write_png</code> use</span>
       </summary>
@@ -737,8 +789,9 @@
             <div class="api-result"><dt>returns <code>Option&lt;(i64, i64, Bytes)&gt;</code></dt><dd>Some((width, height, pixels)) for an 8-bit RGBA PNG. pixels contains top-first RGBA8 rows; None if reading or decoding fails.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-write_png">
       <summary>
+        <a class="api-anchor" href="#rx-write_png" aria-label="Link to rx.write_png" title="Link to rx.write_png">#</a>
         <code class="api-signature api-signature-mobile">rx.write_png(<span class="api-params"><span class="api-param">path,</span> <span class="api-param">w,</span> <span class="api-param">h,</span> <span class="api-param">data</span></span>)<span class="api-return"> -&gt; bool</span></code>
         <span class="api-description">rgba8 row-major &rarr; PNG; path resolves like <code>:export</code> (cwd-relative, <em>not</em> plugin-relative); loud on both outcomes</span>
       </summary>
@@ -760,8 +813,9 @@
   </p>
 
   <div class="api-list">
-    <details class="api-entry">
+    <details class="api-entry" id="rx-create_texture">
       <summary>
+        <a class="api-anchor" href="#rx-create_texture" aria-label="Link to rx.create_texture" title="Link to rx.create_texture">#</a>
         <code class="api-signature api-signature-mobile">rx.create_texture(<span class="api-params"><span class="api-param">w,</span> <span class="api-param">h</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptTexture&gt;</span></code>
         <span class="api-description">rgba8 (sRGB), max dimension 8192; owned by the plugin, dropped with its state</span>
       </summary>
@@ -771,8 +825,9 @@
             <div class="api-result"><dt>returns <code>Option&lt;ScriptTexture&gt;</code></dt><dd>Some(texture) for a new RGBA8 texture; None with a message for invalid dimensions or an unavailable GPU.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-texture_pixels">
       <summary>
+        <a class="api-anchor" href="#rx-texture_pixels" aria-label="Link to rx.texture_pixels" title="Link to rx.texture_pixels">#</a>
         <code class="api-signature api-signature-mobile">rx.texture_pixels(<span class="api-params"><span class="api-param">tex</span></span>)<span class="api-return"> -&gt; Option&lt;Bytes&gt;</span></code>
         <span class="api-description">readback, mirror of <code>upload</code>; forces a GPU sync &mdash; command-handler tool, not per-frame (see pitfalls)</span>
       </summary>
@@ -781,8 +836,9 @@
             <div class="api-result"><dt>returns <code>Option&lt;Bytes&gt;</code></dt><dd>Some(bytes) with RGBA8 pixels in top-first row-major order; None if the GPU is unavailable or bytes cannot be allocated. The read waits for the GPU.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-create_shader">
       <summary>
+        <a class="api-anchor" href="#rx-create_shader" aria-label="Link to rx.create_shader" title="Link to rx.create_shader">#</a>
         <code class="api-signature api-signature-mobile">rx.create_shader(<span class="api-params"><span class="api-param">wgsl</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptShader&gt;</span></code>
       </summary>
       <dl class="api-fields">
@@ -790,8 +846,9 @@
             <div class="api-result"><dt>returns <code>Option&lt;ScriptShader&gt;</code></dt><dd>Some(shader) when compilation succeeds; None with a message for shader validation failure or an unavailable GPU.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-create_render_pipeline">
       <summary>
+        <a class="api-anchor" href="#rx-create_render_pipeline" aria-label="Link to rx.create_render_pipeline" title="Link to rx.create_render_pipeline">#</a>
         <code class="api-signature api-signature-mobile">rx.create_render_pipeline(<span class="api-params"><span class="api-param">shader,</span> <span class="api-param">vs,</span> <span class="api-param">fs,</span> <span class="api-param">textures</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptPipeline&gt;</span></code>
         <span class="api-description">triangle list, sprite vertex layout, alpha blending onto rgba8; <code>textures</code> = 0&ndash;3 texture groups</span>
       </summary>
@@ -803,8 +860,9 @@
             <div class="api-result"><dt>returns <code>Option&lt;ScriptPipeline&gt;</code></dt><dd>Some(pipeline) when valid; None with a message for an unavailable GPU, invalid group count, or pipeline validation failure.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-create_point_pipeline">
       <summary>
+        <a class="api-anchor" href="#rx-create_point_pipeline" aria-label="Link to rx.create_point_pipeline" title="Link to rx.create_point_pipeline">#</a>
         <code class="api-signature api-signature-mobile">rx.create_point_pipeline(<span class="api-params"><span class="api-param">shader,</span> <span class="api-param">vs,</span> <span class="api-param">fs,</span> <span class="api-param">textures</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptPipeline&gt;</span></code>
         <span class="api-description">point list, <strong>no vertex buffers</strong> &mdash; position points from <code>@builtin(vertex_index)</code>, typically <code>textureLoad</code>ing a bound texture (scatter passes); same bind-group layout as render pipelines</span>
       </summary>
@@ -816,8 +874,9 @@
             <div class="api-result"><dt>returns <code>Option&lt;ScriptPipeline&gt;</code></dt><dd>Some(pipeline) when valid; None with a message for an unavailable GPU, invalid group count, or pipeline validation failure.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-create_compute_pipeline">
       <summary>
+        <a class="api-anchor" href="#rx-create_compute_pipeline" aria-label="Link to rx.create_compute_pipeline" title="Link to rx.create_compute_pipeline">#</a>
         <code class="api-signature api-signature-mobile">rx.create_compute_pipeline(<span class="api-params"><span class="api-param">shader,</span> <span class="api-param">entry,</span> <span class="api-param">inputs</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptComputePipeline&gt;</span></code>
         <span class="api-description"><code>inputs</code> = 1&ndash;4 input textures at bindings <code>0..n</code>, write-only rgba8 storage output at binding <code>n</code> (one group)</span>
       </summary>
@@ -830,13 +889,14 @@
     </details>
   </div>
 
-  <h3>texture methods</h3>
+  <h3 id="texture-methods">texture methods</h3>
 
   <p><code>texture</code> is a <code>ScriptTexture</code> returned by <code>rx.create_texture</code>.</p>
 
   <div class="api-list">
-    <details class="api-entry">
+    <details class="api-entry" id="texture-width">
       <summary>
+        <a class="api-anchor" href="#texture-width" aria-label="Link to texture.width" title="Link to texture.width">#</a>
         <code class="api-signature">texture.width()<span class="api-return"> -&gt; i64</span></code>
         <span class="api-description">Read the texture width.</span>
       </summary>
@@ -845,8 +905,9 @@
             <div class="api-result"><dt>returns <code>i64</code></dt><dd>Texture width in pixels.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="texture-height">
       <summary>
+        <a class="api-anchor" href="#texture-height" aria-label="Link to texture.height" title="Link to texture.height">#</a>
         <code class="api-signature">texture.height()<span class="api-return"> -&gt; i64</span></code>
         <span class="api-description">Read the texture height.</span>
       </summary>
@@ -855,8 +916,9 @@
             <div class="api-result"><dt>returns <code>i64</code></dt><dd>Texture height in pixels.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="texture-upload">
       <summary>
+        <a class="api-anchor" href="#texture-upload" aria-label="Link to texture.upload" title="Link to texture.upload">#</a>
         <code class="api-signature">texture.upload(<span class="api-params"><span class="api-param">bytes</span></span>)<span class="api-return"> -&gt; bool</span></code>
         <span class="api-description">Replace the entire texture with pixel data.</span>
       </summary>
@@ -865,8 +927,9 @@
             <div class="api-result"><dt>returns <code>bool</code></dt><dd>true when the byte count matches and the upload is queued; false for a size mismatch, leaving the texture unchanged.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="texture-fill">
       <summary>
+        <a class="api-anchor" href="#texture-fill" aria-label="Link to texture.fill" title="Link to texture.fill">#</a>
         <code class="api-signature">texture.fill(<span class="api-params"><span class="api-param">color</span></span>)<span class="api-return"> -&gt; ()</span></code>
         <span class="api-description">Fill the entire texture with one color.</span>
       </summary>
@@ -877,7 +940,7 @@
     </details>
   </div>
 
-  <h3>bind groups &amp; vertices</h3>
+  <h3 id="bind-groups-vertices">bind groups &amp; vertices</h3>
 
   <p>
     Render/point pipeline layout: group 0 = transform + params, groups
@@ -886,8 +949,9 @@
   </p>
 
   <div class="api-list">
-    <details class="api-entry">
+    <details class="api-entry" id="rx-create_transform_bind_group">
       <summary>
+        <a class="api-anchor" href="#rx-create_transform_bind_group" aria-label="Link to rx.create_transform_bind_group" title="Link to rx.create_transform_bind_group">#</a>
         <code class="api-signature api-signature-mobile">rx.create_transform_bind_group(<span class="api-params"><span class="api-param">w,</span> <span class="api-param">h,</span> <span class="api-param">transform</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptBindGroup&gt;</span></code>
         <span class="api-description">group 0: ortho for a <code>w</code>&times;<code>h</code> target composed with <code>transform</code>; params slot zeroed (WGSL that doesn't declare binding 1 is unaffected)</span>
       </summary>
@@ -898,8 +962,9 @@
             <div class="api-result"><dt>returns <code>Option&lt;ScriptBindGroup&gt;</code></dt><dd>Some(group) for group 0 with transform uniforms and a zeroed vec4 parameter slot; None for an unavailable GPU or nonpositive target dimensions.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-create_transform_params_bind_group">
       <summary>
+        <a class="api-anchor" href="#rx-create_transform_params_bind_group" aria-label="Link to rx.create_transform_params_bind_group" title="Link to rx.create_transform_params_bind_group">#</a>
         <code class="api-signature api-signature-mobile">rx.create_transform_params_bind_group(<span class="api-params"><span class="api-param">w,</span> <span class="api-param">h,</span> <span class="api-param">transform,</span> <span class="api-param">params</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptBindGroup&gt;</span></code>
         <span class="api-description">adds user params (1&ndash;64 floats) at group 0 binding 1: <code>var&lt;uniform&gt; params: array&lt;vec4&lt;f32&gt;, N&gt;</code> where <strong><code>N = ceil(len/4)</code></strong> &mdash; the buffer is sized to the floats passed, <em>not</em> a fixed 64, so declare <code>N</code> to match or it's a validation error; packed in order, zero-padded to the vec4; an f32 holds 24 exact integer bits &mdash; pass 32-bit masks as two 16-bit halves</span>
       </summary>
@@ -911,8 +976,9 @@
             <div class="api-result"><dt>returns <code>Option&lt;ScriptBindGroup&gt;</code></dt><dd>Some(group) for group 0; None for an unavailable GPU, nonpositive dimensions, or an invalid parameter count.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-create_texture_bind_group">
       <summary>
+        <a class="api-anchor" href="#rx-create_texture_bind_group" aria-label="Link to rx.create_texture_bind_group" title="Link to rx.create_texture_bind_group">#</a>
         <code class="api-signature api-signature-mobile">rx.create_texture_bind_group(<span class="api-params"><span class="api-param">texture</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptBindGroup&gt;</span></code>
         <span class="api-description">texture + nearest sampler, for any texture group slot</span>
       </summary>
@@ -921,8 +987,9 @@
             <div class="api-result"><dt>returns <code>Option&lt;ScriptBindGroup&gt;</code></dt><dd>Some(group) containing the texture and nearest sampler; None if the GPU is unavailable.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="encoder-view_bind_group">
       <summary>
+        <a class="api-anchor" href="#encoder-view_bind_group" aria-label="Link to encoder.view_bind_group" title="Link to encoder.view_bind_group">#</a>
         <code class="api-signature api-signature-mobile">encoder.view_bind_group(<span class="api-params"><span class="api-param">view_id</span></span>)<span class="api-return"> -&gt; Result&lt;ScriptBindGroup, String&gt;</span></code>
         <span class="api-description">shade-stage: the view's <strong>live</strong> layer texture as input &mdash; unrecorded paints included, unlike <code>view_pixels</code>; built per call, so resizes are tracked next frame; binding a view as input to a pass targeting it is a validation error (disables the plugin)</span>
       </summary>
@@ -931,8 +998,9 @@
             <div class="api-result"><dt>returns <code>Result&lt;ScriptBindGroup, String&gt;</code></dt><dd>Ok(group) for the current frame; Err(message) for a missing view or unavailable GPU.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-create_compute_bind_group">
       <summary>
+        <a class="api-anchor" href="#rx-create_compute_bind_group" aria-label="Link to rx.create_compute_bind_group" title="Link to rx.create_compute_bind_group">#</a>
         <code class="api-signature api-signature-mobile">rx.create_compute_bind_group(<span class="api-params"><span class="api-param">inputs,</span> <span class="api-param">output</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptBindGroup&gt;</span></code>
         <span class="api-description">1&ndash;4 input textures + storage output; must match the pipeline's declared count; compute reads raw (no sRGB decode)</span>
       </summary>
@@ -942,8 +1010,9 @@
             <div class="api-result"><dt>returns <code>Option&lt;ScriptBindGroup&gt;</code></dt><dd>Some(group) when valid; None with a message for an unavailable GPU, invalid input count/type, or bind-group validation failure.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-create_sprite_vertices">
       <summary>
+        <a class="api-anchor" href="#rx-create_sprite_vertices" aria-label="Link to rx.create_sprite_vertices" title="Link to rx.create_sprite_vertices">#</a>
         <code class="api-signature api-signature-mobile">rx.create_sprite_vertices(<span class="api-params"><span class="api-param">texture,</span> <span class="api-param">options</span></span>)<span class="api-return"> -&gt; Option&lt;ScriptBuffer&gt;</span></code>
         <span class="api-description">convenience helper for the existing render-pass API: creates a six-vertex textured quad; bind the buffer with <code>pass.set_vertex_buffer</code> and draw with <code>pass.draw</code></span>
       </summary>
@@ -959,13 +1028,14 @@
     </details>
   </div>
 
-  <h3>buffer methods</h3>
+  <h3 id="buffer-methods">buffer methods</h3>
 
   <p><code>buffer</code> is a <code>ScriptBuffer</code> returned by <code>rx.create_sprite_vertices</code>.</p>
 
   <div class="api-list">
-    <details class="api-entry">
+    <details class="api-entry" id="buffer-count">
       <summary>
+        <a class="api-anchor" href="#buffer-count" aria-label="Link to buffer.count" title="Link to buffer.count">#</a>
         <code class="api-signature">buffer.count()<span class="api-return"> -&gt; i64</span></code>
         <span class="api-description">Read the number of vertices in a buffer.</span>
       </summary>
@@ -976,7 +1046,7 @@
     </details>
   </div>
 
-  <h3>passes (the <code>shade</code> encoder)</h3>
+  <h3 id="passes">passes (the <code>shade</code> encoder)</h3>
 
   <p>
     <code>shade(state, rx, encoder)</code> records passes on the frame's command
@@ -987,8 +1057,9 @@
   </p>
 
   <div class="api-list">
-    <details class="api-entry">
+    <details class="api-entry" id="encoder-begin_render_pass">
       <summary>
+        <a class="api-anchor" href="#encoder-begin_render_pass" aria-label="Link to encoder.begin_render_pass" title="Link to encoder.begin_render_pass">#</a>
         <code class="api-signature api-signature-mobile">encoder.begin_render_pass(<span class="api-params"><span class="api-param">label,</span> <span class="api-param">texture,</span> <span class="api-param">load</span></span>)<span class="api-return"> -&gt; Result&lt;ScriptPass, String&gt;</span></code>
         <span class="api-description">a script texture</span>
       </summary>
@@ -999,8 +1070,9 @@
             <div class="api-result"><dt>returns <code>Result&lt;ScriptPass, String&gt;</code></dt><dd>Ok(pass) for the texture; Err(message) for an unknown load operation or expired encoder.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="encoder-begin_view_pass">
       <summary>
+        <a class="api-anchor" href="#encoder-begin_view_pass" aria-label="Link to encoder.begin_view_pass" title="Link to encoder.begin_view_pass">#</a>
         <code class="api-signature api-signature-mobile">encoder.begin_view_pass(<span class="api-params"><span class="api-param">label,</span> <span class="api-param">view_id,</span> <span class="api-param">load</span></span>)<span class="api-return"> -&gt; Result&lt;ScriptPass, String&gt;</span></code>
         <span class="api-description">a view's layer &mdash; follow with <code>rx.touch_view(id)</code> so the edit is recorded (and undoable)</span>
       </summary>
@@ -1011,8 +1083,9 @@
             <div class="api-result"><dt>returns <code>Result&lt;ScriptPass, String&gt;</code></dt><dd>Ok(pass) for the target; Err(message) for a missing view, unknown load operation, or expired encoder.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="encoder-begin_staging_pass">
       <summary>
+        <a class="api-anchor" href="#encoder-begin_staging_pass" aria-label="Link to encoder.begin_staging_pass" title="Link to encoder.begin_staging_pass">#</a>
         <code class="api-signature api-signature-mobile">encoder.begin_staging_pass(<span class="api-params"><span class="api-param">label,</span> <span class="api-param">view_id,</span> <span class="api-param">load</span></span>)<span class="api-return"> -&gt; Result&lt;ScriptPass, String&gt;</span></code>
         <span class="api-description">the view's staging overlay: composited above the view, cleared every frame &mdash; for uncommitted previews</span>
       </summary>
@@ -1023,8 +1096,9 @@
             <div class="api-result"><dt>returns <code>Result&lt;ScriptPass, String&gt;</code></dt><dd>Ok(pass) for the target; Err(message) for a missing view, unknown load operation, or expired encoder.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="encoder-begin_compute_pass">
       <summary>
+        <a class="api-anchor" href="#encoder-begin_compute_pass" aria-label="Link to encoder.begin_compute_pass" title="Link to encoder.begin_compute_pass">#</a>
         <code class="api-signature api-signature-mobile">encoder.begin_compute_pass(<span class="api-params"><span class="api-param">label</span></span>)<span class="api-return"> -&gt; Result&lt;ScriptComputePass, String&gt;</span></code>
       </summary>
       <dl class="api-fields">
@@ -1034,13 +1108,14 @@
     </details>
   </div>
 
-  <h3>render-pass methods</h3>
+  <h3 id="render-pass-methods">render-pass methods</h3>
 
   <p><code>pass</code> is a <code>ScriptPass</code>. Use it during the hook that created or received it. Beginning another encoder pass or returning from the hook ends it.</p>
 
   <div class="api-list">
-    <details class="api-entry">
+    <details class="api-entry" id="pass-set_pipeline">
       <summary>
+        <a class="api-anchor" href="#pass-set_pipeline" aria-label="Link to pass.set_pipeline" title="Link to pass.set_pipeline">#</a>
         <code class="api-signature api-signature-mobile">pass.set_pipeline(<span class="api-params"><span class="api-param">p</span></span>)<span class="api-return"> -&gt; Result&lt;(), String&gt;</span></code>
         <span class="api-description">Select the pipeline.</span>
       </summary>
@@ -1049,8 +1124,9 @@
             <div class="api-result"><dt>returns <code>Result&lt;(), String&gt;</code></dt><dd>Ok(()) when recorded; Err(message) if the pass has ended. Invalid GPU state can also cause a validation error at hook completion.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="pass-set_bind_group">
       <summary>
+        <a class="api-anchor" href="#pass-set_bind_group" aria-label="Link to pass.set_bind_group" title="Link to pass.set_bind_group">#</a>
         <code class="api-signature api-signature-mobile">pass.set_bind_group(<span class="api-params"><span class="api-param">i,</span> <span class="api-param">g</span></span>)<span class="api-return"> -&gt; Result&lt;(), String&gt;</span></code>
         <span class="api-description">Bind resources for the pipeline.</span>
       </summary>
@@ -1060,8 +1136,9 @@
             <div class="api-result"><dt>returns <code>Result&lt;(), String&gt;</code></dt><dd>Ok(()) when recorded; Err(message) if the pass has ended. Invalid GPU state can also cause a validation error at hook completion.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="pass-end">
       <summary>
+        <a class="api-anchor" href="#pass-end" aria-label="Link to pass.end" title="Link to pass.end">#</a>
         <code class="api-signature">pass.end()<span class="api-return"> -&gt; ()</span></code>
         <span class="api-description">End the pass; calling end again is harmless.</span>
       </summary>
@@ -1070,8 +1147,9 @@
             <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="pass-set_vertex_buffer">
       <summary>
+        <a class="api-anchor" href="#pass-set_vertex_buffer" aria-label="Link to pass.set_vertex_buffer" title="Link to pass.set_vertex_buffer">#</a>
         <code class="api-signature api-signature-mobile">pass.set_vertex_buffer(<span class="api-params"><span class="api-param">slot,</span> <span class="api-param">b</span></span>)<span class="api-return"> -&gt; Result&lt;(), String&gt;</span></code>
         <span class="api-description">Bind a vertex buffer.</span>
       </summary>
@@ -1081,8 +1159,9 @@
             <div class="api-result"><dt>returns <code>Result&lt;(), String&gt;</code></dt><dd>Ok(()) when recorded; Err(message) if the pass has ended. The buffer must match the pipeline vertex layout.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="pass-draw">
       <summary>
+        <a class="api-anchor" href="#pass-draw" aria-label="Link to pass.draw" title="Link to pass.draw">#</a>
         <code class="api-signature api-signature-mobile">pass.draw(<span class="api-params"><span class="api-param">vertices,</span> <span class="api-param">instances</span></span>)<span class="api-return"> -&gt; Result&lt;(), String&gt;</span></code>
         <span class="api-description">Record a draw call.</span>
       </summary>
@@ -1094,13 +1173,14 @@
     </details>
   </div>
 
-  <h3>compute-pass methods</h3>
+  <h3 id="compute-pass-methods">compute-pass methods</h3>
 
   <p><code>compute_pass</code> is a <code>ScriptComputePass</code>. Use it during the hook that created or received it. Beginning another encoder pass or returning from the hook ends it.</p>
 
   <div class="api-list">
-    <details class="api-entry">
+    <details class="api-entry" id="compute_pass-set_pipeline">
       <summary>
+        <a class="api-anchor" href="#compute_pass-set_pipeline" aria-label="Link to compute_pass.set_pipeline" title="Link to compute_pass.set_pipeline">#</a>
         <code class="api-signature api-signature-mobile">compute_pass.set_pipeline(<span class="api-params"><span class="api-param">p</span></span>)<span class="api-return"> -&gt; Result&lt;(), String&gt;</span></code>
         <span class="api-description">Select the pipeline.</span>
       </summary>
@@ -1109,8 +1189,9 @@
             <div class="api-result"><dt>returns <code>Result&lt;(), String&gt;</code></dt><dd>Ok(()) when recorded; Err(message) if the pass has ended. Invalid GPU state can also cause a validation error at hook completion.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="compute_pass-set_bind_group">
       <summary>
+        <a class="api-anchor" href="#compute_pass-set_bind_group" aria-label="Link to compute_pass.set_bind_group" title="Link to compute_pass.set_bind_group">#</a>
         <code class="api-signature api-signature-mobile">compute_pass.set_bind_group(<span class="api-params"><span class="api-param">i,</span> <span class="api-param">g</span></span>)<span class="api-return"> -&gt; Result&lt;(), String&gt;</span></code>
         <span class="api-description">Bind resources for the pipeline.</span>
       </summary>
@@ -1120,8 +1201,9 @@
             <div class="api-result"><dt>returns <code>Result&lt;(), String&gt;</code></dt><dd>Ok(()) when recorded; Err(message) if the pass has ended. Invalid GPU state can also cause a validation error at hook completion.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="compute_pass-end">
       <summary>
+        <a class="api-anchor" href="#compute_pass-end" aria-label="Link to compute_pass.end" title="Link to compute_pass.end">#</a>
         <code class="api-signature">compute_pass.end()<span class="api-return"> -&gt; ()</span></code>
         <span class="api-description">End the pass; calling end again is harmless.</span>
       </summary>
@@ -1130,8 +1212,9 @@
             <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="compute_pass-dispatch">
       <summary>
+        <a class="api-anchor" href="#compute_pass-dispatch" aria-label="Link to compute_pass.dispatch" title="Link to compute_pass.dispatch">#</a>
         <code class="api-signature api-signature-mobile">compute_pass.dispatch(<span class="api-params"><span class="api-param">x,</span> <span class="api-param">y,</span> <span class="api-param">z</span></span>)<span class="api-return"> -&gt; Result&lt;(), String&gt;</span></code>
         <span class="api-description">Record a compute dispatch.</span>
       </summary>
@@ -1154,8 +1237,9 @@
   <h2 id="types">types &amp; constructors (free functions, <code>rx::</code>)</h2>
 
   <div class="api-list">
-    <details class="api-entry">
+    <details class="api-entry" id="rx-rgb">
       <summary>
+        <a class="api-anchor" href="#rx-rgb" aria-label="Link to rx::rgb" title="Link to rx::rgb">#</a>
         <code class="api-signature">rx::rgb(<span class="api-params"><span class="api-param">r,</span> <span class="api-param">g,</span> <span class="api-param">b</span></span>)<span class="api-return"> -&gt; Rgba8</span></code>
         <span class="api-description">alpha 255; fields <code>.r .g .b .a</code> readable</span>
       </summary>
@@ -1166,8 +1250,9 @@
             <div class="api-result"><dt>returns <code>Rgba8</code></dt><dd>A color with the supplied components and alpha 255.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-rgba">
       <summary>
+        <a class="api-anchor" href="#rx-rgba" aria-label="Link to rx::rgba" title="Link to rx::rgba">#</a>
         <code class="api-signature">rx::rgba(<span class="api-params"><span class="api-param">r,</span> <span class="api-param">g,</span> <span class="api-param">b,</span> <span class="api-param">a</span></span>)<span class="api-return"> -&gt; Rgba8</span></code>
         <span class="api-description">explicit alpha; blends in <code>draw_line</code>/<code>draw_text</code> (e.g. translucent connection wires)</span>
       </summary>
@@ -1179,8 +1264,9 @@
             <div class="api-result"><dt>returns <code>Rgba8</code></dt><dd>A color with the supplied components. Alpha 0 is transparent and 255 is opaque.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-rect">
       <summary>
+        <a class="api-anchor" href="#rx-rect" aria-label="Link to rx::rect" title="Link to rx::rect">#</a>
         <code class="api-signature api-signature-mobile">rx::rect(<span class="api-params"><span class="api-param">x1,</span> <span class="api-param">y1,</span> <span class="api-param">x2,</span> <span class="api-param">y2</span></span>)<span class="api-return"> -&gt; Rect</span></code>
         <span class="api-description">fields <code>.x1 .y1 .x2 .y2</code></span>
       </summary>
@@ -1192,8 +1278,9 @@
             <div class="api-result"><dt>returns <code>Rect</code></dt><dd>A rectangle with these exact corners; construction does not normalize or clamp them. Use the coordinate space required by the receiving function.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-mat4_identity">
       <summary>
+        <a class="api-anchor" href="#rx-mat4_identity" aria-label="Link to rx::mat4_identity" title="Link to rx::mat4_identity">#</a>
         <code class="api-signature">rx::mat4_identity()<span class="api-return"> -&gt; Mat4</span></code>
       </summary>
       <dl class="api-fields">
@@ -1201,8 +1288,9 @@
             <div class="api-result"><dt>returns <code>Mat4</code></dt><dd>The identity transform; points are unchanged.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-mat4_translation">
       <summary>
+        <a class="api-anchor" href="#rx-mat4_translation" aria-label="Link to rx::mat4_translation" title="Link to rx::mat4_translation">#</a>
         <code class="api-signature api-signature-mobile">rx::mat4_translation(<span class="api-params"><span class="api-param">x,</span> <span class="api-param">y</span></span>)<span class="api-return"> -&gt; Mat4</span></code>
       </summary>
       <dl class="api-fields">
@@ -1211,8 +1299,9 @@
             <div class="api-result"><dt>returns <code>Mat4</code></dt><dd>A translation matrix. Values are stored as f32.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-mat4_scale">
       <summary>
+        <a class="api-anchor" href="#rx-mat4_scale" aria-label="Link to rx::mat4_scale" title="Link to rx::mat4_scale">#</a>
         <code class="api-signature">rx::mat4_scale(<span class="api-params"><span class="api-param">sx,</span> <span class="api-param">sy</span></span>)<span class="api-return"> -&gt; Mat4</span></code>
       </summary>
       <dl class="api-fields">
@@ -1221,8 +1310,9 @@
             <div class="api-result"><dt>returns <code>Mat4</code></dt><dd>A scale matrix. Values are stored as f32.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-mat4_rotation_z">
       <summary>
+        <a class="api-anchor" href="#rx-mat4_rotation_z" aria-label="Link to rx::mat4_rotation_z" title="Link to rx::mat4_rotation_z">#</a>
         <code class="api-signature api-signature-mobile">rx::mat4_rotation_z(<span class="api-params"><span class="api-param">theta</span></span>)<span class="api-return"> -&gt; Mat4</span></code>
       </summary>
       <dl class="api-fields">
@@ -1230,8 +1320,9 @@
             <div class="api-result"><dt>returns <code>Mat4</code></dt><dd>A rotation matrix. With y-up coordinates, positive angles rotate counterclockwise.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-mat4_mul">
       <summary>
+        <a class="api-anchor" href="#rx-mat4_mul" aria-label="Link to rx::mat4_mul" title="Link to rx::mat4_mul">#</a>
         <code class="api-signature">rx::mat4_mul(<span class="api-params"><span class="api-param">a,</span> <span class="api-param">b</span></span>)<span class="api-return"> -&gt; Mat4</span></code>
       </summary>
       <dl class="api-fields">
@@ -1240,8 +1331,9 @@
             <div class="api-result"><dt>returns <code>Mat4</code></dt><dd>The product a * b; when applied to a point, b acts first, then a.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-mat4_transform_point">
       <summary>
+        <a class="api-anchor" href="#rx-mat4_transform_point" aria-label="Link to rx::mat4_transform_point" title="Link to rx::mat4_transform_point">#</a>
         <code class="api-signature api-signature-mobile">rx::mat4_transform_point(<span class="api-params"><span class="api-param">m,</span> <span class="api-param">x,</span> <span class="api-param">y</span></span>)<span class="api-return"> -&gt; (f64, f64)</span></code>
       </summary>
       <dl class="api-fields">
@@ -1251,8 +1343,9 @@
             <div class="api-result"><dt>returns <code>(f64, f64)</code></dt><dd>The transformed (x, y). Calculations use the matrix’s f32 precision.</dd></div>
           </dl>
     </details>
-    <details class="api-entry">
+    <details class="api-entry" id="rx-atan2">
       <summary>
+        <a class="api-anchor" href="#rx-atan2" aria-label="Link to rx::atan2" title="Link to rx::atan2">#</a>
         <code class="api-signature">rx::atan2(<span class="api-params"><span class="api-param">y,</span> <span class="api-param">x</span></span>)<span class="api-return"> -&gt; f64</span></code>
         <span class="api-description">radians</span>
       </summary>
