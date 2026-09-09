@@ -84,7 +84,8 @@
   <pre><code><span class="hl-c">// mode-vis.rune - current mode indicator</span>
 
 <span class="hl-k">const</span> TEXT_X = <span class="hl-n">10.0</span>;
-<span class="hl-k">const</span> TEXT_Y = <span class="hl-n">46.0</span>;
+<span class="hl-k">const</span> BOTTOM_MARGIN = <span class="hl-n">46.0</span>;
+<span class="hl-k">const</span> GLYPH_HEIGHT = <span class="hl-n">14.0</span>;
 
 <span class="hl-k">pub fn</span> <span class="hl-f">init</span>(rx) {
     <span class="hl-c">// no state needed; return an empty map</span>
@@ -92,18 +93,20 @@
 }
 
 <span class="hl-k">pub fn</span> <span class="hl-f">draw</span>(state, rx) {
+    <span class="hl-k">let</span> (_, height) = rx.<span class="hl-f">screen_size</span>();
+    <span class="hl-k">let</span> text_y = (height <span class="hl-k">as</span> f64) - BOTTOM_MARGIN - GLYPH_HEIGHT;
     <span class="hl-k">let</span> mode = rx.<span class="hl-f">mode</span>();
     <span class="hl-k">let</span> label = <span class="hl-s">`-- ${mode.<span class="hl-f">to_uppercase</span>()} --`</span>;
 
     <span class="hl-k">if</span> mode == <span class="hl-s">"normal"</span> {
-        rx.<span class="hl-f">draw_text</span>(label, TEXT_X, TEXT_Y, rx::<span class="hl-f">rgb</span>(<span class="hl-n">255</span>, <span class="hl-n">255</span>, <span class="hl-n">255</span>));
+        rx.<span class="hl-f">draw_text</span>(label, TEXT_X, text_y, rx::<span class="hl-f">rgb</span>(<span class="hl-n">255</span>, <span class="hl-n">255</span>, <span class="hl-n">255</span>));
     } <span class="hl-k">else if</span> mode.<span class="hl-f">starts_with</span>(<span class="hl-s">"visual"</span>) {
-        rx.<span class="hl-f">draw_text</span>(label, TEXT_X, TEXT_Y, rx::<span class="hl-f">rgb</span>(<span class="hl-n">0xff</span>, <span class="hl-n">0x33</span>, <span class="hl-n">0x66</span>));
+        rx.<span class="hl-f">draw_text</span>(label, TEXT_X, text_y, rx::<span class="hl-f">rgb</span>(<span class="hl-n">0xff</span>, <span class="hl-n">0x33</span>, <span class="hl-n">0x66</span>));
     } <span class="hl-k">else if</span> mode == <span class="hl-s">"command"</span> {
         <span class="hl-c">// command mode is skipped</span>
     } <span class="hl-k">else</span> {
         <span class="hl-c">// script and other modes</span>
-        rx.<span class="hl-f">draw_text</span>(label, TEXT_X, TEXT_Y, rx::<span class="hl-f">rgb</span>(<span class="hl-n">0xff</span>, <span class="hl-n">0x33</span>, <span class="hl-n">0x66</span>));
+        rx.<span class="hl-f">draw_text</span>(label, TEXT_X, text_y, rx::<span class="hl-f">rgb</span>(<span class="hl-n">0xff</span>, <span class="hl-n">0x33</span>, <span class="hl-n">0x66</span>));
     }
 }</code></pre>
 
@@ -232,6 +235,8 @@
 
 <span class="hl-k">pub fn</span> <span class="hl-f">switch_mode</span>(state, rx) {
     <span class="hl-c">// fired on mode edges; clean up when we've left our mode</span>
+    <span class="hl-k">let</span> (_, height) = rx.<span class="hl-f">screen_size</span>();
+    <span class="hl-k">let</span> text_y = (height <span class="hl-k">as</span> f64) - BOTTOM_MARGIN - GLYPH_HEIGHT;
     <span class="hl-k">let</span> mode = rx.<span class="hl-f">mode</span>();
     <span class="hl-k">if</span> state.in_progress && mode != ROTATION_MODE && mode != <span class="hl-s">"command"</span> {
         state.in_progress = <span class="hl-k">false</span>;
@@ -334,7 +339,7 @@
 
   <p>
     That's the core. For the exhaustive list of functions, types, and the
-    conventions that bite (y-up rects vs y-down bytes, snapshot-vs-live reads,
+    conventions that bite (top-left coordinates, snapshot-vs-live reads,
     the params-buffer sizing rule), see the
     <a href="api-reference.html">API reference</a> &mdash; and read the sample
     plugins under <code>plugins/</code>, which exercise all of it.

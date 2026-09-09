@@ -535,27 +535,27 @@
       <dl class="api-fields">
             <div><dt><code>x</code> <span class="api-type">f64</span></dt><dd>Horizontal position in window logical coordinates.</dd></div>
             <div><dt><code>y</code> <span class="api-type">f64</span></dt><dd>Vertical position in window logical coordinates.</dd></div>
-            <div class="api-result"><dt>returns <code>(f64, f64)</code></dt><dd>The converted (x, y) in session coordinates, without rounding to integer pixels.</dd></div>
+            <div class="api-result"><dt>returns <code>(f64, f64)</code></dt><dd>The converted (x, y) in session coordinates, floored to integer pixels.</dd></div>
           </dl>
     </details>
     <details class="api-entry" id="rx-active_view_coords">
       <summary>
         <a class="api-anchor" href="#rx-active_view_coords" aria-label="Link to rx.active_view_coords" title="Link to rx.active_view_coords">#</a>
         <code class="api-signature api-signature-mobile">rx.active_view_coords(<span class="api-params"><span class="api-param">x,</span> <span class="api-param">y</span></span>)<span class="api-return"> -&gt; (f64, f64)</span></code>
-        <span class="api-description">session &rarr; active-view (unrounded)</span>
+        <span class="api-description">session &rarr; active-view (floored)</span>
       </summary>
       <dl class="api-fields">
             <div><dt><code>x</code> <span class="api-type">f64</span></dt><dd>Horizontal position in session coordinates.</dd></div>
             <div><dt><code>y</code> <span class="api-type">f64</span></dt><dd>Vertical position in session coordinates.</dd></div>
-            <div class="api-result"><dt>returns <code>(f64, f64)</code></dt><dd>The converted (x, y) in active-view coordinates, without rounding to integer pixels.</dd></div>
+            <div class="api-result"><dt>returns <code>(f64, f64)</code></dt><dd>The converted (x, y) in active-view coordinates, floored to integer pixels.</dd></div>
           </dl>
     </details>
   </div>
 
   <p>
-    Session, view, and UI drawing coordinates are y-up. Mouse events use
-    window logical coordinates with y increasing downward; use
-    <code>rx.session_coords(x, y)</code> to convert mouse positions.
+    Session, view, UI drawing coordinates, and pixel rows all increase downward
+    from a top-left origin. Mouse events use window logical coordinates; use
+    <code>rx.session_coords(x, y)</code> to apply the interface scale.
   </p>
 
   <h2 id="views">views</h2>
@@ -590,7 +590,7 @@
       </summary>
       <dl class="api-fields">
             <div><dt><code>id</code> <span class="api-type">i64</span></dt><dd>View ID from rx.active_view_id() or a ViewInfo snapshot.</dd></div>
-            <div><dt><code>rect</code> <span class="api-type">Rect</span></dt><dd>Requested rectangle in view coordinates (y-up); normalized and clamped to the layer bounds.</dd></div>
+            <div><dt><code>rect</code> <span class="api-type">Rect</span></dt><dd>Requested rectangle in view coordinates (y-down); normalized and clamped to the layer bounds.</dd></div>
             <div class="api-result"><dt>returns <code>Option&lt;Bytes&gt;</code></dt><dd>Some(bytes) from the recorded bottom-layer snapshot, RGBA8 row-major with the top row first; None for a missing view, an empty intersection, or a failed read.</dd></div>
           </dl>
     </details>
@@ -603,7 +603,7 @@
       <dl class="api-fields">
             <div><dt><code>id</code> <span class="api-type">i64</span></dt><dd>View ID from rx.active_view_id() or a ViewInfo snapshot.</dd></div>
             <div><dt><code>layer</code> <span class="api-type">i64</span></dt><dd>Zero-based layer index; 0 is the bottom layer, regardless of one-based UI labels.</dd></div>
-            <div><dt><code>rect</code> <span class="api-type">Rect</span></dt><dd>Requested rectangle in view coordinates (y-up); normalized and clamped to the layer bounds.</dd></div>
+            <div><dt><code>rect</code> <span class="api-type">Rect</span></dt><dd>Requested rectangle in view coordinates (y-down); normalized and clamped to the layer bounds.</dd></div>
             <div class="api-result"><dt>returns <code>Option&lt;Bytes&gt;</code></dt><dd>Some(bytes) from the requested recorded layer, RGBA8 row-major with the top row first; None for a missing view/layer, an empty intersection, or a failed read.</dd></div>
           </dl>
     </details>
@@ -694,7 +694,7 @@
         <span class="api-description">clear a rect of the active view to transparent &mdash; a recorded paint</span>
       </summary>
       <dl class="api-fields">
-            <div><dt><code>rect</code> <span class="api-type">Rect</span></dt><dd>Rectangle of the active view to erase, in y-up view coordinates; corners are normalized.</dd></div>
+            <div><dt><code>rect</code> <span class="api-type">Rect</span></dt><dd>Rectangle of the active view to erase, in y-down view coordinates; corners are normalized.</dd></div>
             <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
           </dl>
     </details>
@@ -741,9 +741,9 @@
       </summary>
       <dl class="api-fields">
             <div><dt><code>x1</code> <span class="api-type">i64</span></dt><dd>Horizontal coordinate of the first corner, in view pixels.</dd></div>
-            <div><dt><code>y1</code> <span class="api-type">i64</span></dt><dd>Vertical coordinate of the first corner, in y-up view pixels.</dd></div>
+            <div><dt><code>y1</code> <span class="api-type">i64</span></dt><dd>Vertical coordinate of the first corner, in y-down view pixels.</dd></div>
             <div><dt><code>x2</code> <span class="api-type">i64</span></dt><dd>Horizontal coordinate of the second corner, in view pixels.</dd></div>
-            <div><dt><code>y2</code> <span class="api-type">i64</span></dt><dd>Vertical coordinate of the second corner, in y-up view pixels.</dd></div>
+            <div><dt><code>y2</code> <span class="api-type">i64</span></dt><dd>Vertical coordinate of the second corner, in y-down view pixels.</dd></div>
             <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
           </dl>
     </details>
@@ -905,7 +905,7 @@
       <dl class="api-fields">
             <div><dt><code>text</code> <span class="api-type">String</span></dt><dd>Text to draw, left-aligned.</dd></div>
             <div><dt><code>x</code> <span class="api-type">f64</span></dt><dd>Horizontal text position in UI drawing coordinates.</dd></div>
-            <div><dt><code>y</code> <span class="api-type">f64</span></dt><dd>Vertical text position in UI drawing coordinates (y-up).</dd></div>
+            <div><dt><code>y</code> <span class="api-type">f64</span></dt><dd>Vertical text position in UI drawing coordinates (y-down).</dd></div>
             <div><dt><code>color</code> <span class="api-type">Rgba8</span></dt><dd>RGBA color, for example rx::rgba(255, 128, 0, 255).</dd></div>
             <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
           </dl>
@@ -917,7 +917,7 @@
         <span class="api-description">1px line, <code>(x, y)</code> tuples; no-op outside <code>draw</code></span>
       </summary>
       <dl class="api-fields">
-            <div><dt><code>p1</code> <span class="api-type">(f64, f64)</span></dt><dd>Start point in UI drawing coordinates (y-up).</dd></div>
+            <div><dt><code>p1</code> <span class="api-type">(f64, f64)</span></dt><dd>Start point in UI drawing coordinates (y-down).</dd></div>
             <div><dt><code>p2</code> <span class="api-type">(f64, f64)</span></dt><dd>End point in the same coordinates.</dd></div>
             <div><dt><code>color</code> <span class="api-type">Rgba8</span></dt><dd>RGBA color, for example rx::rgba(255, 128, 0, 255).</dd></div>
             <div class="api-result"><dt>returns <code>()</code></dt><dd>No return value (unit).</dd></div>
@@ -1180,8 +1180,8 @@
       <dl class="api-fields">
             <div><dt><code>texture</code> <span class="api-type">ScriptTexture</span></dt><dd>Texture whose dimensions normalize source coordinates into UVs. This helper does not bind the texture or issue a draw.</dd></div>
             <div><dt><code>options</code> <span class="api-type">Object</span></dt><dd>A descriptor such as <code>#{ dst, src, color, opacity }</code>. Only dst is required. Unknown fields and incorrectly typed values are rejected. The descriptor can be reused across calls.</dd></div>
-            <div><dt><code>options.dst</code> <span class="api-type">Rect</span></dt><dd>Required destination rectangle in target pixels (y-up).</dd></div>
-            <div><dt><code>options.src</code> <span class="api-type">Rect</span></dt><dd>Optional source rectangle in texture pixels (y-up). Defaults to the whole texture.</dd></div>
+            <div><dt><code>options.dst</code> <span class="api-type">Rect</span></dt><dd>Required destination rectangle in target pixels (y-down).</dd></div>
+            <div><dt><code>options.src</code> <span class="api-type">Rect</span></dt><dd>Optional source rectangle in texture pixels (y-down). Defaults to the whole texture.</dd></div>
             <div><dt><code>options.color</code> <span class="api-type">Rgba8</span></dt><dd>Optional vertex tint. Defaults to opaque white.</dd></div>
             <div><dt><code>options.opacity</code> <span class="api-type">f64</span></dt><dd>Optional opacity multiplier, normally 0.0–1.0. Defaults to 1.0. Can be combined with a source rectangle and tint.</dd></div>
             <div class="api-result"><dt>returns <code>Option&lt;ScriptBuffer&gt;</code></dt><dd>Some(buffer) containing six vertices in the existing sprite pipeline layout; None with an error message for invalid options or an unavailable GPU. Each call allocates a new GPU vertex buffer.</dd></div>
@@ -1478,7 +1478,7 @@
       </summary>
       <dl class="api-fields">
             <div><dt><code>theta</code> <span class="api-type">f64</span></dt><dd>Rotation angle in radians around the Z axis.</dd></div>
-            <div class="api-result"><dt>returns <code>Mat4</code></dt><dd>A rotation matrix. With y-up coordinates, positive angles rotate counterclockwise.</dd></div>
+            <div class="api-result"><dt>returns <code>Mat4</code></dt><dd>A rotation matrix. With y-down coordinates, positive angles rotate clockwise.</dd></div>
           </dl>
     </details>
     <details class="api-entry" id="rx-mat4_mul">
@@ -1521,11 +1521,11 @@
   <h2 id="pitfalls">conventions &amp; pitfalls</h2>
 
   <ul>
-    <li><strong>Rect coords are y-up, pixel bytes are y-down.</strong>
-      <code>view_pixels</code> / selection rects and quad <code>dst</code> rects
-      use y-up view coordinates; the returned (and uploaded) byte buffers are
-      y-down rows. Painting at dst y=10 in a 128-high view lands in byte row
-      117. Selection rects from reversed drags arrive normalized.</li>
+    <li><strong>Coordinates and pixel rows share a top-left origin.</strong>
+      <code>view_pixels</code>, selection rects, and quad <code>src</code> and
+      <code>dst</code> rects all use y-down coordinates. Painting pixel y=10
+      lands in byte row 10. A cropped buffer starts at the clamped rectangle's
+      top-left corner. Normalize reversed selection corners before drawing.</li>
     <li><strong>Snapshot vs live.</strong> <code>view_pixels</code> reads the
       <em>recorded snapshot</em>: it sees a mutation only after the view was
       touched and the frame recorded &mdash; split mutate and read into separate
