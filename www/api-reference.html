@@ -135,10 +135,11 @@
           <li class="api-toc-api"><a href="#rx-texture_pixels">rx.<wbr>texture_pixels</a></li>
           <li class="api-toc-api"><a href="#rx-create_shader">rx.<wbr>create_shader</a></li>
           <li class="api-toc-api"><a href="#rx-create_render_pipeline">rx.<wbr>create_render_pipeline</a></li>
-          <li class="api-toc-api"><a href="#rx-create_point_pipeline">rx.<wbr>create_point_pipeline</a></li>
           <li class="api-toc-api"><a href="#rx-create_compute_pipeline">rx.<wbr>create_compute_pipeline</a></li>
           <li class="api-toc-branch"><a href="#texture-methods">texture methods</a>
             <ul>
+              <li class="api-toc-api"><a href="#texture-view">texture.<wbr>view</a></li>
+              <li class="api-toc-api"><a href="#texture-raw_view">texture.<wbr>raw_view</a></li>
               <li class="api-toc-api"><a href="#texture-width">texture.<wbr>width</a></li>
               <li class="api-toc-api"><a href="#texture-height">texture.<wbr>height</a></li>
               <li class="api-toc-api"><a href="#texture-upload">texture.<wbr>upload</a></li>
@@ -162,6 +163,8 @@
           </li>
           <li class="api-toc-branch"><a href="#passes">passes (the shade encoder)</a>
             <ul>
+              <li class="api-toc-api"><a href="#encoder-view_layer">encoder.<wbr>view_layer</a></li>
+              <li class="api-toc-api"><a href="#encoder-view_staging">encoder.<wbr>view_staging</a></li>
               <li class="api-toc-api"><a href="#encoder-begin_render_pass">encoder.<wbr>begin_render_pass</a></li>
               <li class="api-toc-api"><a href="#encoder-begin_view_pass">encoder.<wbr>begin_view_pass</a></li>
               <li class="api-toc-api"><a href="#encoder-begin_staging_pass">encoder.<wbr>begin_staging_pass</a></li>
@@ -1010,30 +1013,31 @@
     <details class="api-entry" id="rx-create_render_pipeline">
       <summary>
         <a class="api-anchor" href="#rx-create_render_pipeline" aria-label="Link to rx.create_render_pipeline" title="Link to rx.create_render_pipeline">#</a>
-        <code class="api-signature api-signature-mobile">rx.create_render_pipeline(<span class="api-params"><span class="api-param">shader,</span> <span class="api-param">vs,</span> <span class="api-param">fs,</span> <span class="api-param">textures</span></span>)<span class="api-return"> -&gt; Option&lt;<a class="api-xref" href="#rx-create_render_pipeline">ScriptPipeline</a>&gt;</span></code>
-        <span class="api-description">triangle list, sprite vertex layout, alpha blending onto rgba8; <code>textures</code> = 0&ndash;3 texture groups</span>
+        <code class="api-signature api-signature-mobile">rx.create_render_pipeline(<span class="api-params"><span class="api-param">shader,</span> <span class="api-param">options</span></span>)<span class="api-return"> -&gt; Option&lt;<a class="api-xref" href="#rx-create_render_pipeline">ScriptPipeline</a>&gt;</span></code>
+        <span class="api-description">Create a pipeline with explicit blending and independent topology and vertex layout.</span>
       </summary>
       <dl class="api-fields">
-            <div><dt><code>shader</code> <span class="api-type"><a class="api-xref" href="#rx-create_shader">ScriptShader</a></span></dt><dd>Compiled WGSL shader from <a class="api-xref" href="#rx-create_shader">rx.create_shader()</a>.</dd></div>
-            <div><dt><code>vs</code> <span class="api-type">String</span></dt><dd>Name of the WGSL vertex entry point.</dd></div>
-            <div><dt><code>fs</code> <span class="api-type">String</span></dt><dd>Name of the WGSL fragment entry point.</dd></div>
-            <div><dt><code>textures</code> <span class="api-type">i64</span></dt><dd>Number of sampled-texture groups, 0..=3; group 0 is reserved for transform uniforms.</dd></div>
-            <div class="api-result"><dt>returns <code>Option&lt;<a class="api-xref" href="#rx-create_render_pipeline">ScriptPipeline</a>&gt;</code></dt><dd>Some(pipeline) when valid; None with a message for an unavailable GPU, invalid group count, or pipeline validation failure.</dd></div>
-          </dl>
-    </details>
-    <details class="api-entry" id="rx-create_point_pipeline">
-      <summary>
-        <a class="api-anchor" href="#rx-create_point_pipeline" aria-label="Link to rx.create_point_pipeline" title="Link to rx.create_point_pipeline">#</a>
-        <code class="api-signature api-signature-mobile">rx.create_point_pipeline(<span class="api-params"><span class="api-param">shader,</span> <span class="api-param">vs,</span> <span class="api-param">fs,</span> <span class="api-param">textures</span></span>)<span class="api-return"> -&gt; Option&lt;<a class="api-xref" href="#rx-create_render_pipeline">ScriptPipeline</a>&gt;</span></code>
-        <span class="api-description">point list, <strong>no vertex buffers</strong> &mdash; position points from <code>@builtin(vertex_index)</code>, typically <code>textureLoad</code>ing a bound texture (scatter passes); same bind-group layout as render pipelines</span>
-      </summary>
-      <dl class="api-fields">
-            <div><dt><code>shader</code> <span class="api-type"><a class="api-xref" href="#rx-create_shader">ScriptShader</a></span></dt><dd>Compiled WGSL shader from <a class="api-xref" href="#rx-create_shader">rx.create_shader()</a>.</dd></div>
-            <div><dt><code>vs</code> <span class="api-type">String</span></dt><dd>Name of the WGSL vertex entry point.</dd></div>
-            <div><dt><code>fs</code> <span class="api-type">String</span></dt><dd>Name of the WGSL fragment entry point.</dd></div>
-            <div><dt><code>textures</code> <span class="api-type">i64</span></dt><dd>Number of sampled-texture groups, 0..=3; group 0 is reserved for transform uniforms.</dd></div>
-            <div class="api-result"><dt>returns <code>Option&lt;<a class="api-xref" href="#rx-create_render_pipeline">ScriptPipeline</a>&gt;</code></dt><dd>Some(pipeline) when valid; None with a message for an unavailable GPU, invalid group count, or pipeline validation failure.</dd></div>
-          </dl>
+        <div><dt><code>shader</code> <span class="api-type"><a class="api-xref" href="#rx-create_shader">ScriptShader</a></span></dt><dd>Compiled WGSL module from <a class="api-xref" href="#rx-create_shader">rx.create_shader</a>. Both entry points must belong to this module.</dd></div>
+        <div><dt><code>options</code> <span class="api-type">Object</span></dt><dd>Pipeline descriptor with the fields below. Required fields must be present; unknown fields and invalid values are errors. Descriptors can be reused.</dd></div>
+        <div><dt><code>options.vertex</code> <span class="api-type">String</span></dt><dd>Required vertex entry-point name.</dd></div>
+        <div><dt><code>options.fragment</code> <span class="api-type">String</span></dt><dd>Required fragment entry-point name.</dd></div>
+        <div><dt><code>options.blend</code> <span class="api-type">String | Object</span></dt><dd>Required. <code>&quot;alpha&quot;</code> composites straight-alpha source colors; <code>&quot;premultiplied_alpha&quot;</code> composites already-premultiplied colors; <code>&quot;replace&quot;</code> overwrites exact RGBA, including zero alpha. An object instead supplies separate color and alpha equations, documented below.</dd></div>
+        <div><dt><code>options.textures</code> <span class="api-type">i64</span></dt><dd>Optional, default <code>0</code>. Number of texture + nearest-sampler groups, 0–3. Group 0 always uses the transform/params layout; texture groups occupy slots 1 through this count.</dd></div>
+        <div><dt><code>options.topology</code> <span class="api-type">String</span></dt><dd>Optional, default <code>&quot;triangle_list&quot;</code>. Accepted: <code>&quot;triangle_list&quot;</code>, <code>&quot;triangle_strip&quot;</code>, <code>&quot;point_list&quot;</code>, <code>&quot;line_list&quot;</code>, <code>&quot;line_strip&quot;</code>. Independent of the vertex layout.</dd></div>
+        <div><dt><code>options.vertex_layout</code> <span class="api-type">String</span></dt><dd>Optional, default <code>&quot;sprite&quot;</code>: position (Float32x3), UV (Float32x2), color (Unorm8x4), opacity (Float32), at locations 0–3, with a 28-byte vertex stride. <code>&quot;none&quot;</code> declares no vertex buffers; the shader can generate geometry from <code>@builtin(vertex_index)</code>.</dd></div>
+        <div><dt><code>options.format</code> <span class="api-type">String</span></dt><dd>Optional, default <code>&quot;rgba8unorm-srgb&quot;</code>. Also accepts <code>&quot;rgba8unorm&quot;</code>. Must match the render attachment: use the default for editor targets and <a class="api-xref" href="#texture-view">texture.view()</a>, or linear format for <a class="api-xref" href="#texture-raw_view">texture.raw_view()</a>.</dd></div>
+        <div><dt><code>options.blend.color</code> <span class="api-type">Object</span></dt><dd>Required when blend is an object. RGB equation, with <code>src</code>, <code>dst</code>, and <code>op</code> fields as below.</dd></div>
+        <div><dt><code>options.blend.alpha</code> <span class="api-type">Object</span></dt><dd>Required when blend is an object. Alpha equation, with the same three fields. Each equation is evaluated independently.</dd></div>
+        <div><dt><code>src / dst</code> <span class="api-type">String</span></dt><dd>Required in each custom equation. Source/destination multipliers: <code>&quot;zero&quot;</code>, <code>&quot;one&quot;</code>, <code>&quot;src&quot;</code>, <code>&quot;one_minus_src&quot;</code>, <code>&quot;src_alpha&quot;</code>, <code>&quot;one_minus_src_alpha&quot;</code>, <code>&quot;dst&quot;</code>, <code>&quot;one_minus_dst&quot;</code>, <code>&quot;dst_alpha&quot;</code>, <code>&quot;one_minus_dst_alpha&quot;</code>, <code>&quot;src_alpha_saturated&quot;</code>. Source is the fragment output; destination is the stored pixel. wgpu validates supported combinations.</dd></div>
+        <div><dt><code>op</code> <span class="api-type">String</span></dt><dd>Required in each custom equation. <code>&quot;add&quot;</code>, <code>&quot;subtract&quot;</code>, <code>&quot;reverse_subtract&quot;</code>, <code>&quot;min&quot;</code>, <code>&quot;max&quot;</code>. Add/subtract combine the factored source and destination; min/max choose the minimum/maximum of the source and destination components, ignoring factors.</dd></div>
+        <div class="api-result"><dt>returns <code>Option&lt;<a class="api-xref" href="#rx-create_render_pipeline">ScriptPipeline</a>&gt;</code></dt><dd>Some(pipeline) on success; None with an error message for invalid options, an unavailable GPU, or pipeline validation failure.</dd></div>
+      </dl>
+      <p>The pipeline has one color attachment, all RGBA channels writable, no depth attachment, and no multisampling. Arbitrary vertex and binding layouts are not exposed.</p>
+      <pre><code>let pipeline = rx.create_render_pipeline(shader, #{
+    vertex: "vs_main", fragment: "fs_main", textures: 1,
+    blend: "replace",
+}).unwrap();</code></pre>
+      <p>A vertex-index-driven point pipeline uses <code>topology: "point_list", vertex_layout: "none"</code> in this constructor.</p>
     </details>
     <details class="api-entry" id="rx-create_compute_pipeline">
       <summary>
@@ -1055,6 +1059,28 @@
   <p><code>texture</code> is a <code><a class="api-xref" href="#texture-methods">ScriptTexture</a></code> returned by <code><a class="api-xref" href="#rx-create_texture">rx.create_texture</a></code>.</p>
 
   <div class="api-list">
+    <details class="api-entry" id="texture-view">
+      <summary>
+        <a class="api-anchor" href="#texture-view" aria-label="Link to texture.view" title="Link to texture.view">#</a>
+        <code class="api-signature">texture.view()<span class="api-return"> -&gt; <a class="api-xref" href="#texture-view">ScriptTextureView</a></span></code>
+        <span class="api-description">Create a persistent rgba8unorm-srgb view over a script-owned texture.</span>
+      </summary>
+      <dl class="api-fields">
+        <div><dt>parameters</dt><dd>None.</dd></div>
+        <div class="api-result"><dt>returns <code><a class="api-xref" href="#texture-view">ScriptTextureView</a></code></dt><dd>A view of the same storage; no copy or CPU readback. It can be retained independently of the texture handle and used as a render attachment or sampled binding. RGB is decoded when sampled and encoded when rendered; alpha is unchanged by sRGB conversion. Render pipelines targeting it must use <code>format: &quot;rgba8unorm-srgb&quot;</code>.</dd></div>
+      </dl>
+    </details>
+    <details class="api-entry" id="texture-raw_view">
+      <summary>
+        <a class="api-anchor" href="#texture-raw_view" aria-label="Link to texture.raw_view" title="Link to texture.raw_view">#</a>
+        <code class="api-signature">texture.raw_view()<span class="api-return"> -&gt; <a class="api-xref" href="#texture-view">ScriptTextureView</a></span></code>
+        <span class="api-description">Create a persistent rgba8unorm view over a script-owned texture.</span>
+      </summary>
+      <dl class="api-fields">
+        <div><dt>parameters</dt><dd>None.</dd></div>
+        <div class="api-result"><dt>returns <code><a class="api-xref" href="#texture-view">ScriptTextureView</a></code></dt><dd>A view of the same storage; no copy or CPU readback. It can be retained independently of the texture handle and used as a render attachment or sampled binding. Sampling and rendering use linear unorm values without sRGB conversion. The compute API uses this same raw representation. Render pipelines targeting it must use <code>format: &quot;rgba8unorm&quot;</code>.</dd></div>
+      </dl>
+    </details>
     <details class="api-entry" id="texture-width">
       <summary>
         <a class="api-anchor" href="#texture-width" aria-label="Link to texture.width" title="Link to texture.width">#</a>
@@ -1140,13 +1166,13 @@
     <details class="api-entry" id="rx-create_texture_bind_group">
       <summary>
         <a class="api-anchor" href="#rx-create_texture_bind_group" aria-label="Link to rx.create_texture_bind_group" title="Link to rx.create_texture_bind_group">#</a>
-        <code class="api-signature api-signature-mobile">rx.create_texture_bind_group(<span class="api-params"><span class="api-param">texture</span></span>)<span class="api-return"> -&gt; Option&lt;<a class="api-xref" href="#bind-groups-vertices">ScriptBindGroup</a>&gt;</span></code>
-        <span class="api-description">texture + nearest sampler, for any texture group slot</span>
+        <code class="api-signature api-signature-mobile">rx.create_texture_bind_group(<span class="api-params"><span class="api-param">view</span></span>)<span class="api-return"> -&gt; Option&lt;<a class="api-xref" href="#bind-groups-vertices">ScriptBindGroup</a>&gt;</span></code>
+        <span class="api-description">Bind a texture view and nearest sampler using the shared texture-group layout.</span>
       </summary>
       <dl class="api-fields">
-            <div><dt><code>texture</code> <span class="api-type"><a class="api-xref" href="#texture-methods">ScriptTexture</a></span></dt><dd>A texture created by <a class="api-xref" href="#rx-create_texture">rx.create_texture()</a>.</dd></div>
-            <div class="api-result"><dt>returns <code>Option&lt;<a class="api-xref" href="#bind-groups-vertices">ScriptBindGroup</a>&gt;</code></dt><dd>Some(group) containing the texture and nearest sampler; None if the GPU is unavailable.</dd></div>
-          </dl>
+        <div><dt><code>view</code> <span class="api-type"><a class="api-xref" href="#texture-view">ScriptTextureView</a></span></dt><dd>Sampled texture view from <a class="api-xref" href="#texture-view">texture.view()</a>, <a class="api-xref" href="#texture-raw_view">texture.raw_view()</a>, <a class="api-xref" href="#encoder-view_layer">encoder.view_layer(id)</a>, or <a class="api-xref" href="#encoder-view_staging">encoder.view_staging(id)</a>. sRGB views decode RGB to linear values; raw views do not. Bind at a texture group slot declared by the pipeline.</dd></div>
+        <div class="api-result"><dt>returns <code>Option&lt;<a class="api-xref" href="#bind-groups-vertices">ScriptBindGroup</a>&gt;</code></dt><dd>Some(group) on success; None with an error message if the GPU is unavailable or the view has expired. Editor-derived bindings expire when the next frame's shade stage begins; script-owned bindings can be retained. Sampling an attachment being written by the same pass is a GPU validation error.</dd></div>
+      </dl>
     </details>
     <details class="api-entry" id="encoder-view_bind_group">
       <summary>
@@ -1218,18 +1244,42 @@
   </p>
 
   <div class="api-list">
+    <details class="api-entry" id="encoder-view_layer">
+      <summary>
+        <a class="api-anchor" href="#encoder-view_layer" aria-label="Link to encoder.view_layer" title="Link to encoder.view_layer">#</a>
+        <code class="api-signature api-signature-mobile">encoder.view_layer(<span class="api-params"><span class="api-param">view_id</span></span>)<span class="api-return"> -&gt; Result&lt;<a class="api-xref" href="#texture-view">ScriptTextureView</a>, String&gt;</span></code>
+        <span class="api-description">Access the live artwork texture view.</span>
+      </summary>
+      <dl class="api-fields">
+        <div><dt><code>view_id</code> <span class="api-type">i64</span></dt><dd>ID of an existing editor view, obtainable from <a class="api-xref" href="#rx-active_view_id">rx.active_view_id()</a> or <a class="api-xref" href="#rx-views">rx.views()</a>. Negative, out-of-range, and missing IDs are rejected. The raw artwork sheet: x spans the frame strip and y spans stacked layer strips. This does not select or crop the active layer.</dd></div>
+        <div class="api-result"><dt>returns <code>Result&lt;<a class="api-xref" href="#texture-view">ScriptTextureView</a>, String&gt;</code></dt><dd>Ok(view) on success; Err(message) for an invalid/missing ID, expired encoder, or unavailable GPU. The sRGB view and bindings derived from it remain valid through the current frame's render hook, then expire when the next shade stage begins. Obtain fresh handles each frame, including after a resize.</dd></div>
+      </dl>
+    </details>
+    <details class="api-entry" id="encoder-view_staging">
+      <summary>
+        <a class="api-anchor" href="#encoder-view_staging" aria-label="Link to encoder.view_staging" title="Link to encoder.view_staging">#</a>
+        <code class="api-signature api-signature-mobile">encoder.view_staging(<span class="api-params"><span class="api-param">view_id</span></span>)<span class="api-return"> -&gt; Result&lt;<a class="api-xref" href="#texture-view">ScriptTextureView</a>, String&gt;</span></code>
+        <span class="api-description">Access the live preview-overlay texture view.</span>
+      </summary>
+      <dl class="api-fields">
+        <div><dt><code>view_id</code> <span class="api-type">i64</span></dt><dd>ID of an existing editor view, obtainable from <a class="api-xref" href="#rx-active_view_id">rx.active_view_id()</a> or <a class="api-xref" href="#rx-views">rx.views()</a>. Negative, out-of-range, and missing IDs are rejected. The per-frame staging overlay, composited above the artwork and cleared each frame. Painting it does not modify recorded artwork.</dd></div>
+        <div class="api-result"><dt>returns <code>Result&lt;<a class="api-xref" href="#texture-view">ScriptTextureView</a>, String&gt;</code></dt><dd>Ok(view) on success; Err(message) for an invalid/missing ID, expired encoder, or unavailable GPU. The sRGB view and bindings derived from it remain valid through the current frame's render hook, then expire when the next shade stage begins. Obtain fresh handles each frame, including after a resize.</dd></div>
+      </dl>
+    </details>
     <details class="api-entry" id="encoder-begin_render_pass">
       <summary>
         <a class="api-anchor" href="#encoder-begin_render_pass" aria-label="Link to encoder.begin_render_pass" title="Link to encoder.begin_render_pass">#</a>
-        <code class="api-signature api-signature-mobile">encoder.begin_render_pass(<span class="api-params"><span class="api-param">label,</span> <span class="api-param">texture,</span> <span class="api-param">load</span></span>)<span class="api-return"> -&gt; Result&lt;<a class="api-xref" href="#render-pass-methods">ScriptPass</a>, String&gt;</span></code>
-        <span class="api-description">a script texture</span>
+        <code class="api-signature api-signature-mobile">encoder.begin_render_pass(<span class="api-params"><span class="api-param">target,</span> <span class="api-param">options</span></span>)<span class="api-return"> -&gt; Result&lt;<a class="api-xref" href="#render-pass-methods">ScriptPass</a>, String&gt;</span></code>
+        <span class="api-description">Render into any texture view; beginning a pass ends the previous open pass.</span>
       </summary>
       <dl class="api-fields">
-            <div><dt><code>label</code> <span class="api-type">String</span></dt><dd>Debug label for the GPU pass.</dd></div>
-            <div><dt><code>texture</code> <span class="api-type"><a class="api-xref" href="#texture-methods">ScriptTexture</a></span></dt><dd>A texture created by <a class="api-xref" href="#rx-create_texture">rx.create_texture()</a>.</dd></div>
-            <div><dt><code>load</code> <span class="api-type">String</span></dt><dd>&quot;load&quot; preserves existing pixels; &quot;clear&quot; clears the target to transparent.</dd></div>
-            <div class="api-result"><dt>returns <code>Result&lt;<a class="api-xref" href="#render-pass-methods">ScriptPass</a>, String&gt;</code></dt><dd>Ok(pass) for the texture; Err(message) for an unknown load operation or expired encoder.</dd></div>
-          </dl>
+        <div><dt><code>target</code> <span class="api-type"><a class="api-xref" href="#texture-view">ScriptTextureView</a></span></dt><dd>Color attachment from a script texture or live editor target. Match the pipeline format to this view. Editor views must belong to the current frame.</dd></div>
+        <div><dt><code>options</code> <span class="api-type">Object</span></dt><dd>Pass descriptor with the fields below. Unknown fields and invalid values return Err; descriptors can be reused.</dd></div>
+        <div><dt><code>options.load</code> <span class="api-type">String</span></dt><dd>Required. <code>&quot;load&quot;</code> preserves existing pixels; <code>&quot;clear&quot;</code> clears the entire attachment before drawing. Output is always stored.</dd></div>
+        <div><dt><code>options.label</code> <span class="api-type">String</span></dt><dd>Optional debug label; default <code>&quot;script_pass&quot;</code>.</dd></div>
+        <div><dt><code>options.clear</code> <span class="api-type">Vec&lt;f64&gt;</span></dt><dd>Optional with <code>load: &quot;clear&quot;</code> only. Exactly four finite linear RGBA floats in 0–1. Default <code>[0.0, 0.0, 0.0, 0.0]</code> (transparent black). Supplying this with <code>load: &quot;load&quot;</code> is an error.</dd></div>
+        <div class="api-result"><dt>returns <code>Result&lt;<a class="api-xref" href="#render-pass-methods">ScriptPass</a>, String&gt;</code></dt><dd>Ok(pass) on success; Err(message) for invalid options, an expired target, or an expired encoder. End the pass explicitly or let the next pass/hook completion end it. For undoable artwork edits, also call <a class="api-xref" href="#rx-touch_view">rx.touch_view(id)</a>.</dd></div>
+      </dl>
     </details>
     <details class="api-entry" id="encoder-begin_view_pass">
       <summary>
@@ -1537,8 +1587,9 @@
     <li><strong>GPU errors disable the plugin.</strong> Every hook runs inside a
       validation error scope; a GPU validation error (or script error) disables
       the plugin, posts one message, and the frame survives.</li>
-    <li><strong>Alpha blending cannot write transparency.</strong> To erase,
-      redraw the whole layer (or a rect) from a CPU-edited copy.</li>
+    <li><strong>Transparent fragments do not erase with alpha blending.</strong>
+      Use <code>blend: "replace"</code> and load the existing target to overwrite exact RGBA pixels,
+      or <code>rx.clear_view_rect(rect)</code> for an active-view rectangle. No CPU copy is needed.</li>
     <li><strong>Function arity caps at 5 slots</strong> including the receiver
       &mdash; API functions take at most 4 arguments after <code>rx</code>.</li>
     <li><strong>Limits:</strong> texture dimension &le; 8192; texture groups

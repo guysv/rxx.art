@@ -267,9 +267,13 @@
   <p>
     Resources are created from <code>init</code> (or a command handler):
     <code>rx.create_shader(wgsl)</code> compiles WGSL,
-    <code>rx.create_render_pipeline(shader, vs, fs, textures)</code> builds a
-    pipeline (sprite vertex layout, alpha blending, <code>textures</code> = 0&ndash;3
-    texture groups), and <code>rx.create_texture(w, h)</code> /
+    <code>rx.create_render_pipeline(shader, options)</code> builds a pipeline
+    with explicit blending. The descriptor names the vertex and fragment entry
+    points, texture-group count (0&ndash;3), and blend mode. For example,
+    <code>#{ vertex: "vs_main", fragment: "fs_main", textures: 1, blend: "alpha" }</code>
+    uses the default sprite vertex layout. Point pipelines use
+    <code>topology: "point_list", vertex_layout: "none"</code> in the same constructor.
+    <code>rx.create_texture(w, h)</code> /
     <code>rx.read_png(path)</code> supply texture data. Bind groups and sprite
     vertices come from the <code>rx.create_*_bind_group</code> and
     <code>rx.create_sprite_vertices(texture, options)</code> helper.
@@ -278,6 +282,26 @@
     <code>dst</code>; <code>src</code> defaults to the whole texture,
     <code>color</code> to white, and <code>opacity</code> to 1.0.
     Cropping, tint, and opacity can all be combined.
+  </p>
+
+  <p>
+    Rendering and sampling share texture-view handles. Use <code>texture.view()</code>
+    for an sRGB view, or <code>texture.raw_view()</code> for linear rgba8unorm;
+    the pipeline's target format must match when rendering. During <code>shade</code>,
+    <code>encoder.view_layer(id)</code> and <code>encoder.view_staging(id)</code>
+    expose live editor targets. These editor handles and their bindings remain valid
+    through the current frame's <code>render</code> hook; obtain fresh ones next frame.
+    Create sampled bindings with <code>rx.create_texture_bind_group(texture.view())</code>.
+  </p>
+
+  <p>
+    The general pass constructor is
+    <code>encoder.begin_render_pass(target, #{ label: "filter", load: "clear" })</code>,
+    where <code>target</code> is a texture view. Use <code>load: "load"</code> to
+    preserve existing contents. The convenient <code>begin_view_pass(label, id, load)</code>
+    and <code>begin_staging_pass(label, id, load)</code> methods remain available.
+    To erase, draw transparent fragments with <code>blend: "replace"</code> into
+    the loaded artwork target; no CPU copy or whole-layer reconstruction is needed.
   </p>
 
   <h3>shade(state, rx, encoder)</h3>
@@ -300,7 +324,7 @@
     <span class="hl-k">let</span> dst = rx::<span class="hl-f">rect</span>(state.bx1, state.by1, state.bx2, state.by2);
 
     <span class="hl-k">let</span> tbg = rx.<span class="hl-f">create_transform_bind_group</span>(view.width, view.height, state.transform).<span class="hl-f">unwrap</span>();
-    <span class="hl-k">let</span> sbg = rx.<span class="hl-f">create_texture_bind_group</span>(state.clipboard).<span class="hl-f">unwrap</span>();
+    <span class="hl-k">let</span> sbg = rx.<span class="hl-f">create_texture_bind_group</span>(state.clipboard.<span class="hl-f">view</span>()).<span class="hl-f">unwrap</span>();
     <span class="hl-k">let</span> verts = rx.<span class="hl-f">create_sprite_vertices</span>(state.clipboard, #{ dst, opacity: <span class="hl-n">0.9</span> }).<span class="hl-f">unwrap</span>();
 
     <span class="hl-c">// staging overlay: a live preview, cleared each frame</span>
@@ -325,7 +349,7 @@
   <pre><code><span class="hl-k">pub fn</span> <span class="hl-f">render</span>(state, rx, pass) {
     <span class="hl-k">let</span> (sw, sh) = rx.<span class="hl-f">screen_size</span>();
     <span class="hl-k">let</span> tbg = rx.<span class="hl-f">create_transform_bind_group</span>(sw, sh, rx::<span class="hl-f">mat4_identity</span>()).<span class="hl-f">unwrap</span>();
-    <span class="hl-k">let</span> sbg = rx.<span class="hl-f">create_texture_bind_group</span>(state.icons).<span class="hl-f">unwrap</span>();
+    <span class="hl-k">let</span> sbg = rx.<span class="hl-f">create_texture_bind_group</span>(state.icons.<span class="hl-f">view</span>()).<span class="hl-f">unwrap</span>();
     pass.<span class="hl-f">set_pipeline</span>(state.show).<span class="hl-f">unwrap</span>();
     pass.<span class="hl-f">set_bind_group</span>(<span class="hl-n">0</span>, tbg).<span class="hl-f">unwrap</span>();
     pass.<span class="hl-f">set_bind_group</span>(<span class="hl-n">1</span>, sbg).<span class="hl-f">unwrap</span>();
