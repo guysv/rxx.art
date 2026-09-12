@@ -145,8 +145,11 @@
     </article>
   </div>
   <h2 id="try">loading the plugins</h2>
-  <p><em class="rxx">rxx</em> loads <code>plugins/</code> from the current directory. To use a different directory:</p>
+  <p><em class="rxx">rxx</em> loads <code>plugins/</code> from the current directory and the user configuration directory. Add a plugin directory for a run with <code>--plugin-dir</code> (repeat it for multiple directories):</p>
   <pre><code>rxx --plugin-dir /path/to/rxx/plugins</code></pre>
+  <p>For persistent extra directories, set <code>RXX_PLUGIN_PATH</code> in your shell startup file. It accepts a PATH-style list; for example, on macOS or Linux:</p>
+  <pre><code>export RXX_PLUGIN_PATH="$HOME/src/my-plugins:$HOME/src/more-plugins"</code></pre>
+  <p>Search order is <code>--plugin-dir</code> directories, <code>RXX_PLUGIN_PATH</code>, local <code>plugins/</code>, then the user configuration plugin directory. The first match for each plugin name wins. See <a href="api-reference.html#plugins">plugin discovery in the API reference</a> for details.</p>
   <p>See the <a href="scripting.html">scripting guide</a> for writing plugins and the <a href="api-reference.html">API reference</a> for available functions.</p>
   </main>
   <hr>
