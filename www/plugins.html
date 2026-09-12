@@ -34,6 +34,7 @@
   <nav class="nav nav-sections nav-toc" aria-label="Plugins">
     <a href="#mode-vis">mode vis</a>
     <a href="#animation-mode">animation mode</a>
+    <a href="#miniview">miniview</a>
     <a href="#layer-status">layer status</a>
     <a href="#selection-outline">selection outline</a>
     <a href="#rotate-scale">rotate & scale</a>
@@ -62,9 +63,9 @@
       <p>Adds <code>animation/mode</code> to <code>:set</code>. The values are <code>forward</code> (the default), <code>reverse</code>, and <code>ping-pong</code>. Each view keeps its own setting. With four frames, ping-pong plays 0, 1, 2, 3, 2, 1, then repeats.</p>
       <figure>
         <div class="video-frame">
-        <video controls muted loop playsinline preload="none" poster="media/plugins/animation-mode.png?v=top-left-1" width="960" height="540" aria-label="animation mode demo" aria-describedby="animation-mode-caption">
-          <source src="media/plugins/animation-mode.mp4?v=top-left-1" type="video/mp4">
-          <a href="media/plugins/animation-mode.mp4?v=top-left-1">Download the animation mode demo</a>.
+        <video controls muted loop playsinline preload="none" poster="media/plugins/animation-mode.png?v=aligned-1" width="960" height="540" aria-label="animation mode demo" aria-describedby="animation-mode-caption">
+          <source src="media/plugins/animation-mode.mp4?v=aligned-1" type="video/mp4">
+          <a href="media/plugins/animation-mode.mp4?v=aligned-1">Download the animation mode demo</a>.
         </video>
         </div>
         <figcaption id="animation-mode-caption">Reverse and ping-pong playback.</figcaption>
@@ -72,6 +73,24 @@
       <pre aria-label="Commands"><code>:set animation/mode = reverse
 :set animation/mode = ping-pong</code></pre>
       <a class="plugin-source" href="https://github.com/guysv/rxx/tree/master/plugins/animation-mode">source ↗</a>
+    </article>
+    <hr class="plugin-separator">
+    <article class="plugin-card" id="miniview" aria-labelledby="miniview-title">
+      <h2 id="miniview-title">miniview</h2>
+      <p>A draggable, resizable preview that floats above your views. Run <code>:miniview</code>, then click a sheet frame to pin it or an animation preview to follow playback. Click <strong>Target</strong> to choose again; <code>Esc</code> cancels target selection.</p>
+      <figure>
+        <div class="video-frame">
+        <video controls muted loop playsinline preload="none" poster="media/plugins/miniview.png?v=aligned-1" width="960" height="540" aria-label="miniview demo" aria-describedby="miniview-caption">
+          <source src="media/plugins/miniview.mp4?v=aligned-1" type="video/mp4">
+          <a href="media/plugins/miniview.mp4?v=aligned-1">Download the miniview demo</a>.
+        </video>
+        </div>
+        <figcaption id="miniview-caption">Pin a frame, drag and resize the panel, then attach it to live animation playback.</figcaption>
+      </figure>
+      <pre aria-label="Commands"><code>:miniview
+:miniview/show
+:miniview/off</code></pre>
+      <a class="plugin-source" href="https://github.com/guysv/rxx/tree/master/plugins/miniview">source ↗</a>
     </article>
     <hr class="plugin-separator">
     <article class="plugin-card" id="layer-status" aria-labelledby="layer-status-title">
