@@ -1,0 +1,5 @@
+rxx.art {
+	root * /srv/rxx.art/current
+	encode zstd gzip
+	file_server
+}
