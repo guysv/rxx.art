@@ -44,10 +44,12 @@
           <li class="api-toc-api"><a href="#switch_mode">switch_mode</a></li>
           <li class="api-toc-api"><a href="#cursor_moved">cursor_moved</a></li>
           <li class="api-toc-api"><a href="#mouse_input">mouse_input</a></li>
+          <li class="api-toc-api"><a href="#capture_mouse">capture_mouse</a></li>
           <li class="api-toc-api"><a href="#view_added">view_added</a></li>
           <li class="api-toc-api"><a href="#view_removed">view_removed</a></li>
           <li class="api-toc-api"><a href="#shade">shade</a></li>
           <li class="api-toc-api"><a href="#render">render</a></li>
+          <li class="api-toc-api"><a href="#overlay">overlay</a></li>
           <li class="api-toc-api"><a href="#draw">draw</a></li>
         </ul>
       </li>
@@ -78,6 +80,7 @@
           <li class="api-toc-api"><a href="#rx-view_pixels">rx.<wbr>view_pixels</a></li>
           <li class="api-toc-api"><a href="#rx-view_layer_pixels">rx.<wbr>view_layer_pixels</a></li>
           <li class="api-toc-api"><a href="#rx-layer_visibility">rx.<wbr>layer_visibility</a></li>
+          <li class="api-toc-api"><a href="#rx-layer_opacity">rx.<wbr>layer_opacity</a></li>
           <li class="api-toc-api"><a href="#rx-set_animation_frame">rx.<wbr>set_animation_frame</a></li>
           <li class="api-toc-api"><a href="#rx-set_animation_sequence">rx.<wbr>set_animation_sequence</a></li>
           <li class="api-toc-api"><a href="#rx-animation_sequence">rx.<wbr>animation_sequence</a></li>
@@ -174,6 +177,7 @@
           <li class="api-toc-branch"><a href="#render-pass-methods">render-pass methods</a>
             <ul>
               <li class="api-toc-api"><a href="#pass-set_pipeline">pass.<wbr>set_pipeline</a></li>
+              <li class="api-toc-api"><a href="#pass-draw_sprite">pass.<wbr>draw_sprite</a></li>
               <li class="api-toc-api"><a href="#pass-set_bind_group">pass.<wbr>set_bind_group</a></li>
               <li class="api-toc-api"><a href="#pass-end">pass.<wbr>end</a></li>
               <li class="api-toc-api"><a href="#pass-set_vertex_buffer">pass.<wbr>set_vertex_buffer</a></li>
@@ -237,12 +241,13 @@
   <h2 id="plugins">plugins</h2>
 
   <p>
-    A plugin is a <code>&lt;dir&gt;/&lt;name&gt;.rune</code> file in the plugin
-    directory, or a <code>&lt;dir&gt;/&lt;name&gt;/&lt;name&gt;.rune</code>
-    package (the directory carrying its assets, e.g. WGSL shaders), loaded in
-    lexicographic order. The plugin directory defaults to the OS config dir's
-    <code>plugins/</code> subdirectory; override it with
-    <code>--plugin-dir &lt;path&gt;</code>.
+    Plugins are flat <code>&lt;name&gt;.rune</code> files or packages at
+    <code>&lt;name&gt;/&lt;name&gt;.rune</code> with adjacent assets. Search order:
+    repeated <code>--plugin-dir &lt;path&gt;</code> arguments, the PATH-style
+    <code>RXX_PLUGIN_PATH</code> list, local <code>plugins/</code>, then the OS
+    config directory's <code>plugins/</code>. First match per name wins; plugins
+    load in lexicographic name order. <code>--isolated-plugins</code> restricts
+    discovery to explicitly supplied directories.
   </p>
 
   <p>
@@ -345,6 +350,26 @@
             <div class="api-result"><dt>returns <code>Value</code></dt><dd>Ignored by the host; this hook does not consume the button event.</dd></div>
           </dl>
     </details>
+    <details class="api-entry" id="capture_mouse">
+      <summary>
+        <a class="api-anchor" href="#capture_mouse" aria-label="Link to capture_mouse" title="Link to capture_mouse">#</a>
+        <code class="api-signature api-signature-mobile">capture_mouse(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx,</span> <span class="api-param">button,</span> <span class="api-param">input</span></span>)<span class="api-return"> -&gt; bool</span></code>
+        <span class="api-description"><code>button</code> is <code>"left"</code>/<code>"right"</code>/<code>"middle"</code>, <code>input</code> is <code>"pressed"</code>/<code>"released"</code></span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>state</code> <span class="api-type">Value</span></dt><dd>The plugin state returned by <a class="api-xref" href="#init">init</a>; mutate this value to keep state between calls.</dd></div>
+            <div><dt><code>rx</code> <span class="api-type">Ctx</span></dt><dd>Host interface for this hook call; do not retain it in plugin state.</dd></div>
+            <div><dt><code>button</code> <span class="api-type">String</span></dt><dd>Mouse button: &quot;left&quot;, &quot;right&quot;, or &quot;middle&quot;.</dd></div>
+            <div><dt><code>input</code> <span class="api-type">String</span></dt><dd>Button transition: &quot;pressed&quot; or &quot;released&quot;.</dd></div>
+            <div class="api-result"><dt>returns <code>bool</code></dt><dd>True consumes the event; false passes it to the next handler.</dd></div>
+          </dl>
+      <p>Returns <code>bool</code>: <code>true</code> consumes the button event before ordinary
+      mouse hooks and builtin handling. Hooks run in reverse plugin load order.
+      Capture both press and release for a gesture started on the panel, including
+      releases outside it; let canvas-started gestures finish. This does not intercept
+      cursor motion, wheel events, or keyboard input. An invalid return value or error
+      disables the plugin.</p>
+    </details>
     <details class="api-entry" id="view_added">
       <summary>
         <a class="api-anchor" href="#view_added" aria-label="Link to view_added" title="Link to view_added">#</a>
@@ -389,6 +414,19 @@
         <a class="api-anchor" href="#render" aria-label="Link to render" title="Link to render">#</a>
         <code class="api-signature api-signature-mobile">render(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx,</span> <span class="api-param">pass</span></span>)</code>
         <span class="api-description">per frame: the live screen pass &mdash; everything drawn, present ahead &mdash; for screen-space pipeline drawing</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>state</code> <span class="api-type">Value</span></dt><dd>The plugin state returned by <a class="api-xref" href="#init">init</a>; mutate this value to keep state between calls.</dd></div>
+            <div><dt><code>rx</code> <span class="api-type">Ctx</span></dt><dd>Host interface for this hook call; do not retain it in plugin state.</dd></div>
+            <div><dt><code>pass</code> <span class="api-type"><a class="api-xref" href="#render-pass-methods">ScriptPass</a></span></dt><dd>The live screen render pass for this hook call; do not keep it for another frame.</dd></div>
+            <div class="api-result"><dt>returns <code>Value</code></dt><dd>Ignored by the host. Drawing recorded on pass is the output of this hook.</dd></div>
+          </dl>
+    </details>
+    <details class="api-entry" id="overlay">
+      <summary>
+        <a class="api-anchor" href="#overlay" aria-label="Link to overlay" title="Link to overlay">#</a>
+        <code class="api-signature api-signature-mobile">overlay(<span class="api-params"><span class="api-param">state,</span> <span class="api-param">rx,</span> <span class="api-param">pass</span></span>)</code>
+        <span class="api-description">per frame: draw above all ordinary render hooks, editor UI, and plugin previews; overlays run in plugin load order</span>
       </summary>
       <dl class="api-fields">
             <div><dt><code>state</code> <span class="api-type">Value</span></dt><dd>The plugin state returned by <a class="api-xref" href="#init">init</a>; mutate this value to keep state between calls.</dd></div>
@@ -621,6 +659,17 @@
             <div class="api-result"><dt>returns <code>Vec&lt;bool&gt;</code></dt><dd>One visibility flag per layer, bottom first (index 0); empty for a missing view.</dd></div>
           </dl>
     </details>
+    <details class="api-entry" id="rx-layer_opacity">
+      <summary>
+        <a class="api-anchor" href="#rx-layer_opacity" aria-label="Link to rx.layer_opacity" title="Link to rx.layer_opacity">#</a>
+        <code class="api-signature api-signature-mobile">rx.layer_opacity(<span class="api-params"><span class="api-param">id</span></span>)<span class="api-return"> -&gt; Vec&lt;f64&gt;</span></code>
+        <span class="api-description">per-layer opacity (0.0–1.0), bottom strip first; empty if the view doesn't exist</span>
+      </summary>
+      <dl class="api-fields">
+            <div><dt><code>id</code> <span class="api-type">i64</span></dt><dd>View ID from <a class="api-xref" href="#rx-active_view_id">rx.active_view_id()</a> or a <a class="api-xref" href="#viewinfo">ViewInfo</a> snapshot.</dd></div>
+            <div class="api-result"><dt>returns <code>Vec&lt;f64&gt;</code></dt><dd>One opacity per layer, bottom first (index 0); empty for a missing view.</dd></div>
+          </dl>
+    </details>
     <details class="api-entry" id="rx-set_animation_frame">
       <summary>
         <a class="api-anchor" href="#rx-set_animation_frame" aria-label="Link to rx.set_animation_frame" title="Link to rx.set_animation_frame">#</a>
@@ -719,7 +768,7 @@
     (full sheet: <code>frame_width * frames</code>), <code>height</code>,
     <code>offset_x</code>, <code>offset_y</code>, <code>zoom</code>,
     <code>frames</code>, <code>frame_width</code>, <code>frame_height</code>,
-    <code>animation_frame</code>, <code>nlayers</code> (1 for a flat view),
+    <code>animation_frame</code>, <code>animation_preview_visible</code> (bool), <code>nlayers</code> (1 for a flat view),
     <code>active_layer</code> (<code>0</code> is the bottom strip).
   </p>
 
@@ -1252,7 +1301,7 @@
       </summary>
       <dl class="api-fields">
         <div><dt><code>view_id</code> <span class="api-type">i64</span></dt><dd>ID of an existing editor view, obtainable from <a class="api-xref" href="#rx-active_view_id">rx.active_view_id()</a> or <a class="api-xref" href="#rx-views">rx.views()</a>. Negative, out-of-range, and missing IDs are rejected. The raw artwork sheet: x spans the frame strip and y spans stacked layer strips. This does not select or crop the active layer.</dd></div>
-        <div class="api-result"><dt>returns <code>Result&lt;<a class="api-xref" href="#texture-view">ScriptTextureView</a>, String&gt;</code></dt><dd>Ok(view) on success; Err(message) for an invalid/missing ID, expired encoder, or unavailable GPU. The sRGB view and bindings derived from it remain valid through the current frame's render hook, then expire when the next shade stage begins. Obtain fresh handles each frame, including after a resize.</dd></div>
+        <div class="api-result"><dt>returns <code>Result&lt;<a class="api-xref" href="#texture-view">ScriptTextureView</a>, String&gt;</code></dt><dd>Ok(view) on success; Err(message) for an invalid/missing ID, expired encoder, or unavailable GPU. The sRGB view and bindings derived from it remain valid through the current frame's render and overlay hooks, then expire when the next shade stage begins. Obtain fresh handles each frame, including after a resize.</dd></div>
       </dl>
     </details>
     <details class="api-entry" id="encoder-view_staging">
@@ -1263,7 +1312,7 @@
       </summary>
       <dl class="api-fields">
         <div><dt><code>view_id</code> <span class="api-type">i64</span></dt><dd>ID of an existing editor view, obtainable from <a class="api-xref" href="#rx-active_view_id">rx.active_view_id()</a> or <a class="api-xref" href="#rx-views">rx.views()</a>. Negative, out-of-range, and missing IDs are rejected. The per-frame staging overlay, composited above the artwork and cleared each frame. Painting it does not modify recorded artwork.</dd></div>
-        <div class="api-result"><dt>returns <code>Result&lt;<a class="api-xref" href="#texture-view">ScriptTextureView</a>, String&gt;</code></dt><dd>Ok(view) on success; Err(message) for an invalid/missing ID, expired encoder, or unavailable GPU. The sRGB view and bindings derived from it remain valid through the current frame's render hook, then expire when the next shade stage begins. Obtain fresh handles each frame, including after a resize.</dd></div>
+        <div class="api-result"><dt>returns <code>Result&lt;<a class="api-xref" href="#texture-view">ScriptTextureView</a>, String&gt;</code></dt><dd>Ok(view) on success; Err(message) for an invalid/missing ID, expired encoder, or unavailable GPU. The sRGB view and bindings derived from it remain valid through the current frame's render and overlay hooks, then expire when the next shade stage begins. Obtain fresh handles each frame, including after a resize.</dd></div>
       </dl>
     </details>
     <details class="api-entry" id="encoder-begin_render_pass">
@@ -1321,9 +1370,37 @@
 
   <h3 id="render-pass-methods">render-pass methods</h3>
 
-  <p><code>pass</code> is a <code><a class="api-xref" href="#render-pass-methods">ScriptPass</a></code> returned by <code><a class="api-xref" href="#encoder-begin_render_pass">encoder.begin_render_pass</a></code>, <code><a class="api-xref" href="#encoder-begin_view_pass">encoder.begin_view_pass</a></code>, or <code><a class="api-xref" href="#encoder-begin_staging_pass">encoder.begin_staging_pass</a></code>, or received by the <code><a class="api-xref" href="#render">render</a></code> hook. Use it during the hook that created or received it. Beginning another <a class="api-xref" href="#passes">encoder pass</a> or returning from the hook ends it.</p>
+  <p><code>pass</code> is a <code><a class="api-xref" href="#render-pass-methods">ScriptPass</a></code> returned by <code><a class="api-xref" href="#encoder-begin_render_pass">encoder.begin_render_pass</a></code>, <code><a class="api-xref" href="#encoder-begin_view_pass">encoder.begin_view_pass</a></code>, or <code><a class="api-xref" href="#encoder-begin_staging_pass">encoder.begin_staging_pass</a></code>, or received by the <code><a class="api-xref" href="#render">render</a></code> or <code><a class="api-xref" href="#overlay">overlay</a></code> hook. Use it during the hook that created or received it. Beginning another <a class="api-xref" href="#passes">encoder pass</a> or returning from the hook ends it.</p>
 
   <div class="api-list">
+    <details class="api-entry" id="pass-draw_sprite">
+      <summary>
+        <a class="api-anchor" href="#pass-draw_sprite" aria-label="Link to pass.draw_sprite" title="Link to pass.draw_sprite">#</a>
+        <code class="api-signature api-signature-mobile">pass.draw_sprite(<span class="api-params"><span class="api-param">source,</span> <span class="api-param">options</span></span>)<span class="api-return"> -&gt; Result&lt;(), String&gt;</span></code>
+        <span class="api-description">draw a textured quad with the built-in shader, pipeline, bindings, and geometry</span>
+      </summary>
+      <dl class="api-fields">
+        <div><dt><code>source</code> <span class="api-type">ScriptTexture | ScriptTextureView</span></dt><dd>A script texture or <a class="api-xref" href="#texture-view">texture view</a>, including a current-frame editor view. A texture uses its sRGB view.</dd></div>
+        <div><dt><code>options.dst</code> <span class="api-type"><a class="api-xref" href="#rx-rect">Rect</a></span></dt><dd>Required destination rectangle in target pixels, top-left origin.</dd></div>
+        <div><dt><code>options.src</code> <span class="api-type">Rect</span></dt><dd>Source rectangle in texture pixels; defaults to the whole texture.</dd></div>
+        <div><dt><code>options.transform</code> <span class="api-type">Mat4</span></dt><dd>Applied to destination geometry before projection; defaults to identity.</dd></div>
+        <div><dt><code>options.color</code> <span class="api-type">Rgba8</span></dt><dd>Multiplicative sRGB tint; defaults to opaque white. Tint RGB is converted to linear before multiplication.</dd></div>
+        <div><dt><code>options.opacity</code> <span class="api-type">f64</span></dt><dd>0.0–1.0, default 1.0. Output alpha is sampled alpha × tint alpha × opacity; opacity does not darken RGB.</dd></div>
+        <div><dt><code>options.blend</code> <span class="api-type">String</span></dt><dd><code>"alpha"</code> (default) or <code>"replace"</code>. Replacement writes transparent pixels too.</dd></div>
+        <div class="api-result"><dt>returns <code>Result&lt;(), String&gt;</code></dt><dd>Err for invalid fields, non-finite geometry or transforms, invalid opacity/blend, an ended pass, or an expired editor view. Descriptors can be reused.</dd></div>
+      </dl>
+      <p>The pass supplies target dimensions and format. Sampling is nearest-neighbor,
+      clamp-to-edge; no CPU readback occurs. Raw source/target views bypass the corresponding
+      sRGB conversion. Artwork sources contain all frame and layer strips; crop and compose
+      them explicitly. Do not sample the target's own texture subresource.</p>
+      <p>This changes the active pipeline, bind groups 0–1, and vertex-buffer slot 0.
+      Rebind these before custom drawing in the same pass. Viewport and scissor state
+      are preserved. For examples, see the <a href="scripting.html#gpu-pipeline">scripting guide</a>.</p>
+      <pre><code>pass.draw_sprite(state.icon, #{
+    dst: rx::rect(10.0, 10.0, 26.0, 26.0),
+    opacity: 0.9,
+}).unwrap();</code></pre>
+    </details>
     <details class="api-entry" id="pass-set_pipeline">
       <summary>
         <a class="api-anchor" href="#pass-set_pipeline" aria-label="Link to pass.set_pipeline" title="Link to pass.set_pipeline">#</a>

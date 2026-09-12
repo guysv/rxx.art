@@ -52,11 +52,12 @@
   <p>
     A plugin is a <code>&lt;name&gt;.rune</code> file in the plugin directory, or
     a <code>&lt;name&gt;/&lt;name&gt;.rune</code> package whose directory carries
-    its assets (WGSL shaders, PNG icons). The plugin directory defaults to the OS
-    config dir's <code>plugins/</code> subdirectory; point <em class="rxx">rxx</em>
-    elsewhere with <code>--plugin-dir &lt;path&gt;</code>. Plugins load in
-    lexicographic order, and hot-reload when their file changes &mdash; no
-    restart.
+    its assets (WGSL shaders, PNG icons). Search order is repeated
+    <code>--plugin-dir &lt;path&gt;</code> arguments, the PATH-style
+    <code>RXX_PLUGIN_PATH</code> list, local <code>plugins/</code>, then the OS
+    config directory's <code>plugins/</code>. The first plugin found for each
+    name wins. Plugins load in lexicographic name order and hot-reload when
+    their script changes. See <a href="api-reference.html#plugins">plugin discovery</a>.
   </p>
 
   <p>
@@ -76,7 +77,7 @@
   </div>
 
   <p>
-    Let's start with a small but genuinely useful plugin: a classic vim-style
+    Let's start with a small plugin: a classic vim-style
     'current mode' indicator. It defines two hooks &mdash; <code>init</code> to
     set up state, and <code>draw</code> to paint the overlay each frame.
   </p>
@@ -111,10 +112,10 @@
 }</code></pre>
 
   <p>
-    The <code>draw(state, rx)</code> hook is called every frame, on the UI tier
-    &mdash; this is the only place <code>rx.draw_text</code> and
-    <code>rx.draw_line</code> are live. It reads the current mode with
-    <code>rx.mode()</code>, formats a label, and paints it at a fixed position
+    The <a href="api-reference.html#draw"><code>draw(state, rx)</code></a> hook is called every frame, on the UI tier
+    &mdash; this is the only place <a href="api-reference.html#rx-draw_text"><code>rx.draw_text</code></a> and
+    <a href="api-reference.html#rx-draw_line"><code>rx.draw_line</code></a> are live. It reads the current mode with
+    <a href="api-reference.html#rx-mode"><code>rx.mode()</code></a>, formats a label, and paints it at a fixed position
     in a color that depends on the mode. UI coordinates are y-down, origin
     top-left.
   </p>
@@ -127,7 +128,7 @@
 
   <p>
     From <code>init</code> you register commands the user can invoke from the
-    command line. <code>rx.register_command(name, sig, help, handler)</code>
+    command line. <a href="api-reference.html#rx-register_command"><code>rx.register_command(name, sig, help, handler)</code></a>
     takes a name, a typed parameter signature, a help string, and a handler
     function. The handler is called as <code>handler(state, rx, args)</code>,
     where <code>args</code> holds the parsed, typed arguments.
@@ -149,7 +150,7 @@
     plugin state that <code>init</code> returned. The signature is a list of
     type tags: <code>"int"</code>, <code>"float"</code>, <code>"str"</code>,
     <code>"color"</code>, <code>"bool"</code>, with a trailing <code>?</code> for
-    an optional parameter. Use <code>register_command_repeating</code> for a
+    an optional parameter. Use <a href="api-reference.html#rx-register_command_repeating"><code>register_command_repeating</code></a> for a
     command that repeats while its bound key is held.
   </p>
 
@@ -164,8 +165,8 @@
   <h3>view lifecycle</h3>
 
   <p>
-    <code>view_added(state, rx, id)</code> and
-    <code>view_removed(state, rx, id)</code> fire when the user opens or closes a
+    <a href="api-reference.html#view_added"><code>view_added(state, rx, id)</code></a> and
+    <a href="api-reference.html#view_removed"><code>view_removed(state, rx, id)</code></a> fire when the user opens or closes a
     view. Use them to keep per-view state in sync &mdash; e.g. drop an entry from
     a map keyed by view id so you don't hold stale references.
   </p>
@@ -173,18 +174,21 @@
   <h3>mouse input</h3>
 
   <p>
-    <code>mouse_input(state, rx, button, input)</code> delivers button events:
+    <a href="api-reference.html#mouse_input"><code>mouse_input(state, rx, button, input)</code></a> delivers button events:
     <code>button</code> is <code>"left"</code>, <code>"right"</code>, or
     <code>"middle"</code>; <code>input</code> is <code>"pressed"</code> or
     <code>"released"</code>. The hook carries no coordinates &mdash; read the
-    cursor with <code>rx.cursor()</code> (session coordinates), or track it from
-    <code>cursor_moved(state, rx, x, y)</code>, which receives window-logical
-    coordinates (<code>rx.session_coords(x, y)</code> converts them).
+    cursor with <a href="api-reference.html#rx-cursor"><code>rx.cursor()</code></a> (session coordinates), or track it from
+    <a href="api-reference.html#cursor_moved"><code>cursor_moved(state, rx, x, y)</code></a>, which receives window-logical
+    coordinates (<a href="api-reference.html#rx-session_coords"><code>rx.session_coords(x, y)</code></a> converts them).
   </p>
 
+  <p>This example assumes <code>init</code> returns <code>#{ mx: 0.0, my: 0.0 }</code>.</p>
+
   <pre><code><span class="hl-k">pub fn</span> <span class="hl-f">cursor_moved</span>(state, rx, x, y) {
-    state.mx = x;
-    state.my = y;
+    <span class="hl-k">let</span> (sx, sy) = rx.<span class="hl-f">session_coords</span>(x, y);
+    state.mx = sx;
+    state.my = sy;
 }
 
 <span class="hl-k">pub fn</span> <span class="hl-f">mouse_input</span>(state, rx, button, input) {
@@ -199,174 +203,171 @@
   <p>
     To build a tool that takes over the canvas &mdash; rotate a selection by
     dragging, say &mdash; enter a <em>script mode</em>. Any name passed to
-    <code>rx.switch_mode(name)</code> that isn't a builtin enters a script mode:
+    <a href="api-reference.html#rx-switch_mode"><code>rx.switch_mode(name)</code></a> that isn't a builtin enters a script mode:
     builtin input handling goes inert, escape exits, and your plugin drives
     everything through its hooks and bindings.
   </p>
 
   <p>
     The command line is <em>not</em> reachable from a script mode, so you bind
-    keys to your commands in <code>init</code> with <code>rx.bind(mode, mapping)</code>
-    using <code>:map</code> syntax. The <code>switch_mode(state, rx)</code> hook
-    fires on mode edges &mdash; query <code>rx.mode()</code> (and
-    <code>rx.prev_mode()</code>) to detect leaving your mode and clean up.
+    keys to your commands in <code>init</code> with <a href="api-reference.html#rx-bind"><code>rx.bind(mode, mapping)</code></a>
+    using <code>:map</code> syntax. The <a href="api-reference.html#switch_mode"><code>switch_mode(state, rx)</code></a> hook
+    fires on mode edges &mdash; query <a href="api-reference.html#rx-mode"><code>rx.mode()</code></a> (and
+    <a href="api-reference.html#rx-prev_mode"><code>rx.prev_mode()</code></a>) to detect leaving your mode and clean up.
   </p>
 
-  <pre><code><span class="hl-k">const</span> ROTATION_MODE = <span class="hl-s">"visual (rotation)"</span>;
+  <pre><code>const TOOL_MODE = "visual (my-tool)";
 
-<span class="hl-k">pub fn</span> <span class="hl-f">init</span>(rx) {
-    rx.<span class="hl-f">register_command</span>(<span class="hl-s">"selection/rotate"</span>, [], <span class="hl-s">"Rotate the selection"</span>, selection_rotate);
-    rx.<span class="hl-f">register_command</span>(<span class="hl-s">"rotate/apply"</span>, [], <span class="hl-s">"Stamp the transformed selection"</span>, apply);
-
-    <span class="hl-c">// the command line is inert in a script mode, so bind keys here</span>
-    rx.<span class="hl-f">bind</span>(ROTATION_MODE, <span class="hl-s">"&lt;return&gt; :rotate/apply"</span>);
-    rx.<span class="hl-f">bind</span>(ROTATION_MODE, <span class="hl-s">"'e' :rotate/add 15"</span>);
-    rx.<span class="hl-f">bind</span>(ROTATION_MODE, <span class="hl-s">"'q' :rotate/add -15"</span>);
-
-    #{ in_progress: <span class="hl-k">false</span> }
+pub fn init(rx) {
+    rx.register_command("my-tool", [], "Enter the tool", enter);
+    rx.register_command("my-tool/done", [], "Leave the tool", done);
+    rx.bind(TOOL_MODE, "&lt;return&gt; :my-tool/done");
+    #{ in_progress: false }
 }
 
-<span class="hl-k">pub fn</span> <span class="hl-f">selection_rotate</span>(state, rx, args) {
-    <span class="hl-k">if</span> rx.<span class="hl-f">selection</span>().<span class="hl-f">is_some</span>() {
-        state.in_progress = <span class="hl-k">true</span>;
-        rx.<span class="hl-f">switch_mode</span>(ROTATION_MODE);
-    }
+pub fn enter(state, rx, args) {
+    state.in_progress = true;
+    rx.switch_mode(TOOL_MODE);
 }
 
-<span class="hl-k">pub fn</span> <span class="hl-f">switch_mode</span>(state, rx) {
-    <span class="hl-c">// fired on mode edges; clean up when we've left our mode</span>
-    <span class="hl-k">let</span> (_, height) = rx.<span class="hl-f">screen_size</span>();
-    <span class="hl-k">let</span> text_y = (height <span class="hl-k">as</span> f64) - BOTTOM_MARGIN - GLYPH_HEIGHT;
-    <span class="hl-k">let</span> mode = rx.<span class="hl-f">mode</span>();
-    <span class="hl-k">if</span> state.in_progress && mode != ROTATION_MODE && mode != <span class="hl-s">"command"</span> {
-        state.in_progress = <span class="hl-k">false</span>;
-        rx.<span class="hl-f">damage_view</span>(rx.<span class="hl-f">active_view_id</span>());
+pub fn done(state, rx, args) {
+    rx.switch_mode("normal");
+}
+
+pub fn switch_mode(state, rx) {
+    if rx.mode() != TOOL_MODE {
+        state.in_progress = false;
     }
 }</code></pre>
 
   <p>
-    While in the mode, only your plugin's <code>mouse_input</code> and
-    <code>cursor_moved</code> hooks see input. Track the drag, compute an angle
-    from the cursor relative to a pivot, and preview the result in the view's
-    staging texture from <code>shade</code> (below). On <code>:rotate/apply</code>
-    you stamp it into the view as a recorded, undoable edit. The full
-    implementation ships as the <code>rotate-scale</code> sample plugin.
+    Input hooks still run for enabled plugins, so guard your tool's handlers
+    with <code>rx.mode() == TOOL_MODE</code>. For a rotation tool, track a drag
+    and preview the result in a staging texture from <code>shade</code>.
+    Applying the result writes the artwork and records an undoable edit.
+    See the <a href="plugins.html#rotate-scale">rotate-scale plugin</a> for a
+    complete implementation.
   </p>
 
   <h2 id="gpu-pipeline">GPU pipeline</h2>
 
   <p>
-    For custom GPU work, plugins define <code>shade(state, rx, encoder)</code>
-    and <code>render(state, rx, pass)</code>. <code>shade</code> runs first, with
-    the frame's command encoder, before screen composition &mdash; record render
-    or compute passes onto script textures, view layers, or a view's staging
-    overlay. <code>render</code> runs on the live screen pass, for screen-space
-    drawing.
+    Use <a href="api-reference.html#shade"><code>shade(state, rx, encoder)</code></a>
+    to render into textures or run compute passes before screen composition.
+    Use <a href="api-reference.html#render"><code>render(state, rx, pass)</code></a>
+    to draw on the screen. Floating panels use
+    <a href="api-reference.html#overlay"><code>overlay(state, rx, pass)</code></a>,
+    which runs after all ordinary render hooks, above editor UI and plugin previews.
+    The <code>rx</code>, encoder, and pass handles belong to their hook call;
+    keep persistent textures in state, and acquire fresh editor handles each frame.
   </p>
+
+  <h3>drawing sprites</h3>
 
   <p>
-    Resources are created from <code>init</code> (or a command handler):
-    <code>rx.create_shader(wgsl)</code> compiles WGSL,
-    <code>rx.create_render_pipeline(shader, options)</code> builds a pipeline
-    with explicit blending. The descriptor names the vertex and fragment entry
-    points, texture-group count (0&ndash;3), and blend mode. For example,
-    <code>#{ vertex: "vs_main", fragment: "fs_main", textures: 1, blend: "alpha" }</code>
-    uses the default sprite vertex layout. Point pipelines use
-    <code>topology: "point_list", vertex_layout: "none"</code> in the same constructor.
-    <code>rx.create_texture(w, h)</code> /
-    <code>rx.read_png(path)</code> supply texture data. Bind groups and sprite
-    vertices come from the <code>rx.create_*_bind_group</code> and
-    <code>rx.create_sprite_vertices(texture, options)</code> helper.
-    This convenience function builds a six-vertex quad for the existing
-    render-pass API; it does not bind resources or draw. The descriptor requires
-    <code>dst</code>; <code>src</code> defaults to the whole texture,
-    <code>color</code> to white, and <code>opacity</code> to 1.0.
-    Cropping, tint, and opacity can all be combined.
+    <a href="api-reference.html#pass-draw_sprite"><code>pass.draw_sprite(source, options)</code></a>
+    supplies the shader, pipeline, bindings, and geometry for ordinary textured
+    drawing. The source can be a script texture or texture view. Only <code>dst</code>
+    is required; <code>src</code> defaults to the whole texture. Optional
+    <code>transform</code>, <code>color</code>, <code>opacity</code>, and
+    <code>blend</code> control placement, tint, transparency, and blending.
+    Coordinates start at the top-left and increase downward; sampling uses nearest neighbors.
   </p>
 
-  <p>
-    Rendering and sampling share texture-view handles. Use <code>texture.view()</code>
-    for an sRGB view, or <code>texture.raw_view()</code> for linear rgba8unorm;
-    the pipeline's target format must match when rendering. During <code>shade</code>,
-    <code>encoder.view_layer(id)</code> and <code>encoder.view_staging(id)</code>
-    expose live editor targets. These editor handles and their bindings remain valid
-    through the current frame's <code>render</code> hook; obtain fresh ones next frame.
-    Create sampled bindings with <code>rx.create_texture_bind_group(texture.view())</code>.
-  </p>
+  <pre><code>pub fn init(rx) {
+    let icon = rx.create_texture(1, 1).unwrap();
+    icon.fill(rx::rgb(255, 80, 120));
+    #{ icon }
+}
 
-  <p>
-    The general pass constructor is
-    <code>encoder.begin_render_pass(target, #{ label: "filter", load: "clear" })</code>,
-    where <code>target</code> is a texture view. Use <code>load: "load"</code> to
-    preserve existing contents. The convenient <code>begin_view_pass(label, id, load)</code>
-    and <code>begin_staging_pass(label, id, load)</code> methods remain available.
-    To erase, draw transparent fragments with <code>blend: "replace"</code> into
-    the loaded artwork target; no CPU copy or whole-layer reconstruction is needed.
-  </p>
-
-  <h3>shade(state, rx, encoder)</h3>
-
-  <p>
-    Begin a pass on the encoder (<code>begin_render_pass</code>,
-    <code>begin_view_pass</code>, <code>begin_staging_pass</code>, or
-    <code>begin_compute_pass</code>), then set pipeline, bind groups, and vertex
-    buffer and call <code>draw</code>. One pass is open at a time; beginning a
-    new one ends its predecessor. Use the staging overlay for an uncommitted
-    preview (cleared every frame), or a view pass followed by
-    <code>rx.touch_view(id)</code> to record an undoable edit.
-  </p>
-
-  <pre><code><span class="hl-k">pub fn</span> <span class="hl-f">shade</span>(state, rx, encoder) {
-    <span class="hl-k">if</span> !state.in_progress {
-        <span class="hl-k">return</span>;
-    }
-    <span class="hl-k">let</span> view = <span class="hl-f">active_view</span>(state, rx);
-    <span class="hl-k">let</span> dst = rx::<span class="hl-f">rect</span>(state.bx1, state.by1, state.bx2, state.by2);
-
-    <span class="hl-k">let</span> tbg = rx.<span class="hl-f">create_transform_bind_group</span>(view.width, view.height, state.transform).<span class="hl-f">unwrap</span>();
-    <span class="hl-k">let</span> sbg = rx.<span class="hl-f">create_texture_bind_group</span>(state.clipboard.<span class="hl-f">view</span>()).<span class="hl-f">unwrap</span>();
-    <span class="hl-k">let</span> verts = rx.<span class="hl-f">create_sprite_vertices</span>(state.clipboard, #{ dst, opacity: <span class="hl-n">0.9</span> }).<span class="hl-f">unwrap</span>();
-
-    <span class="hl-c">// staging overlay: a live preview, cleared each frame</span>
-    <span class="hl-k">let</span> pass = encoder.<span class="hl-f">begin_staging_pass</span>(<span class="hl-s">"rotate-scale"</span>, state.active_view_id, <span class="hl-s">"load"</span>).<span class="hl-f">unwrap</span>();
-    pass.<span class="hl-f">set_pipeline</span>(state.nearest).<span class="hl-f">unwrap</span>();
-    pass.<span class="hl-f">set_bind_group</span>(<span class="hl-n">0</span>, tbg).<span class="hl-f">unwrap</span>();
-    pass.<span class="hl-f">set_bind_group</span>(<span class="hl-n">1</span>, sbg).<span class="hl-f">unwrap</span>();
-    pass.<span class="hl-f">set_vertex_buffer</span>(<span class="hl-n">0</span>, verts).<span class="hl-f">unwrap</span>();
-    pass.<span class="hl-f">draw</span>(verts.<span class="hl-f">count</span>(), <span class="hl-n">1</span>).<span class="hl-f">unwrap</span>();
-}</code></pre>
-
-  <h3>render(state, rx, pass)</h3>
-
-  <p>
-    <code>render</code> receives a pass over the live screen, sized to
-    <code>rx.screen_size()</code> &mdash; build screen orthos against it. Draw
-    screen-space sprites here: an overlay anchored to the window, a HUD, an icon
-    strip. The <code>layer-status</code> sample plugin uses it to draw a per-layer
-    visibility column at the screen's edge.
-  </p>
-
-  <pre><code><span class="hl-k">pub fn</span> <span class="hl-f">render</span>(state, rx, pass) {
-    <span class="hl-k">let</span> (sw, sh) = rx.<span class="hl-f">screen_size</span>();
-    <span class="hl-k">let</span> tbg = rx.<span class="hl-f">create_transform_bind_group</span>(sw, sh, rx::<span class="hl-f">mat4_identity</span>()).<span class="hl-f">unwrap</span>();
-    <span class="hl-k">let</span> sbg = rx.<span class="hl-f">create_texture_bind_group</span>(state.icons.<span class="hl-f">view</span>()).<span class="hl-f">unwrap</span>();
-    pass.<span class="hl-f">set_pipeline</span>(state.show).<span class="hl-f">unwrap</span>();
-    pass.<span class="hl-f">set_bind_group</span>(<span class="hl-n">0</span>, tbg).<span class="hl-f">unwrap</span>();
-    pass.<span class="hl-f">set_bind_group</span>(<span class="hl-n">1</span>, sbg).<span class="hl-f">unwrap</span>();
-
-    <span class="hl-k">let</span> src = rx::<span class="hl-f">rect</span>(<span class="hl-n">0.0</span>, <span class="hl-n">0.0</span>, <span class="hl-n">16.0</span>, <span class="hl-n">16.0</span>);
-    <span class="hl-k">let</span> dst = rx::<span class="hl-f">rect</span>(<span class="hl-n">10.0</span>, <span class="hl-n">10.0</span>, <span class="hl-n">26.0</span>, <span class="hl-n">26.0</span>);
-    <span class="hl-k">let</span> v = rx.<span class="hl-f">create_sprite_vertices</span>(state.icons, #{ src, dst }).<span class="hl-f">unwrap</span>();
-    pass.<span class="hl-f">set_vertex_buffer</span>(<span class="hl-n">0</span>, v).<span class="hl-f">unwrap</span>();
-    pass.<span class="hl-f">draw</span>(v.<span class="hl-f">count</span>(), <span class="hl-n">1</span>).<span class="hl-f">unwrap</span>();
+pub fn render(state, rx, pass) {
+    pass.draw_sprite(state.icon, #{
+        dst: rx::rect(10.0, 10.0, 26.0, 26.0),
+        opacity: 0.9,
+    }).unwrap();
 }</code></pre>
 
   <p>
-    That's the core. For the exhaustive list of functions, types, and the
-    conventions that bite (top-left coordinates, snapshot-vs-live reads,
-    the params-buffer sizing rule), see the
-    <a href="api-reference.html">API reference</a> &mdash; and read the sample
-    plugins under <code>plugins/</code>, which exercise all of it.
+    For an image asset, <a href="api-reference.html#rx-read_png"><code>rx.read_png(path)</code></a>
+    returns a texture from a plugin-relative path. The pass supplies the target
+    dimensions and format automatically. When mixing sprite and custom drawing,
+    rebind your custom pipeline, bind groups, and vertex buffer after <code>draw_sprite</code>.
+  </p>
+
+  <h3>previews and edits</h3>
+
+  <p>
+    Open a <a href="api-reference.html#encoder-begin_staging_pass">staging pass</a>
+    for an uncommitted preview; staging contents are cleared every frame.
+    This example uses the texture created above and paints a preview over the active view.
+  </p>
+
+  <pre><code>pub fn shade(state, rx, encoder) {
+    let id = rx.active_view_id();
+    let pass = encoder.begin_staging_pass("preview", id, "load").unwrap();
+    pass.draw_sprite(state.icon, #{
+        dst: rx::rect(0.0, 0.0, 8.0, 8.0),
+    }).unwrap();
+    pass.end();
+}</code></pre>
+
+  <p>
+    To commit artwork, queue the operation in a command handler, draw it in a
+    <a href="api-reference.html#encoder-begin_view_pass">view pass</a>, and call
+    <a href="api-reference.html#rx-touch_view"><code>rx.touch_view(id)</code></a>
+    to record the edit for undo. To erase pixels, draw a transparent texture with
+    <code>blend: "replace"</code> into a pass opened with <code>"load"</code>.
+    Default alpha blending leaves the destination unchanged for transparent source pixels.
+  </p>
+
+  <h3>live artwork and floating panels</h3>
+
+  <p>
+    In <code>shade</code>, obtain artwork with
+    <a href="api-reference.html#encoder-view_layer"><code>encoder.view_layer(id)</code></a>.
+    It can be sampled during the same frame's <code>render</code> and <code>overlay</code>
+    hooks; acquire it again next frame. It contains the full sheet, including layer
+    strips. Crop <code>src</code> to select a frame and layer. To compose the visible
+    artwork, use <a href="api-reference.html#rx-layer_visibility"><code>rx.layer_visibility(id)</code></a>
+    and <a href="api-reference.html#rx-layer_opacity"><code>rx.layer_opacity(id)</code></a>,
+    drawing layers from bottom to top. <a href="api-reference.html#viewinfo">ViewInfo</a>
+    includes frame dimensions, the current animation frame, and <code>animation_preview_visible</code>.
+  </p>
+
+  <p>
+    Draw a floating panel in <code>overlay</code>. Implement
+    <a href="api-reference.html#capture_mouse"><code>capture_mouse(state, rx, button, input) -&gt; bool</code></a>
+    to consume button events owned by the panel. Capture runs in reverse plugin
+    load order, before ordinary mouse hooks and editor handling. Return <code>true</code>
+    for both press and release of a panel-started gesture, including releases outside
+    its bounds; return <code>false</code> for other events. Motion, wheel, and keyboard
+    events are not captured by this hook. The <a href="plugins.html#miniview">miniview plugin</a>
+    combines live artwork, overlay drawing, dragging, resizing, and target selection.
+  </p>
+
+  <h3>custom GPU work</h3>
+
+  <p>
+    For custom shaders, use
+    <a href="api-reference.html#rx-create_render_pipeline"><code>rx.create_render_pipeline(shader, options)</code></a>.
+    The descriptor requires <code>vertex</code>, <code>fragment</code>, and <code>blend</code>;
+    it also controls texture groups, topology, vertex layout, and target format.
+    <a href="api-reference.html#rx-create_sprite_vertices"><code>rx.create_sprite_vertices(texture, options)</code></a>
+    builds geometry for that lower-level API; set the pipeline, bind groups, and vertex
+    buffer before calling <a href="api-reference.html#pass-draw"><code>pass.draw</code></a>.
+  </p>
+
+  <p>
+    <a href="api-reference.html#encoder-begin_render_pass"><code>encoder.begin_render_pass(target, options)</code></a>
+    renders into a texture view. Use <a href="api-reference.html#texture-view"><code>texture.view()</code></a>
+    for sRGB or <a href="api-reference.html#texture-raw_view"><code>texture.raw_view()</code></a>
+    for linear rgba8unorm, and match the custom pipeline's format to its target.
+    A pass cannot sample the same texture subresource it renders into. Beginning a new
+    encoder pass ends the previous one; compute work uses a
+    <a href="api-reference.html#encoder-begin_compute_pass">compute pass</a> and
+    <a href="api-reference.html#compute_pass-dispatch"><code>dispatch</code></a>.
+    See the <a href="api-reference.html#pitfalls">reference conventions and pitfalls</a>
+    for snapshot reads, handle lifetimes, and parameter-buffer sizing.
   </p>
 
   <hr>
