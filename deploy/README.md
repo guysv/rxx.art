@@ -30,3 +30,9 @@ ssh -T modarchive-tracker 'caddy validate --config /etc/caddy/Caddyfile.next --a
 Inspect service health with `systemctl status caddy` and
 `journalctl -u caddy --since '10 minutes ago'` on the server. To roll back content,
 point `current` at the desired retained release using the same symlink swap.
+
+Access logs are JSON lines with Caddy's automatic file rotation. Follow them with:
+
+```sh
+ssh -T modarchive-tracker 'tail -F /var/log/caddy/rxx.art.access.log'
+```

@@ -2,4 +2,7 @@ rxx.art {
 	root * /srv/rxx.art/current
 	encode zstd gzip
 	file_server
+	log {
+		output file /var/log/caddy/rxx.art.access.log
+	}
 }
